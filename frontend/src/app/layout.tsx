@@ -18,8 +18,14 @@ export const metadata: Metadata = {
   description: "白雪巴さんの過去アーカイブを楽しく閲覧できるファンサイト",
   keywords: ["白雪巴", "vtuber", "アーカイブ", "ファンサイト"],
   authors: [{ name: "Diopside Team" }],
-  viewport: "width=device-width, initial-scale=1",
-  themeColor: "#6E3FE7",
+}
+
+export function generateViewport() {
+  return {
+    width: 'device-width',
+    initialScale: 1,
+    themeColor: '#6E3FE7',
+  }
 };
 
 export default function RootLayout({
