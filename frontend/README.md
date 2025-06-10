@@ -180,15 +180,28 @@ npm run test:coverage
 
 # E2Eテスト（Playwright）
 npm run test:e2e
+
+# E2EテストのUIモード
+npm run test:e2e:ui
+
+# E2Eテストのデバッグモード
+npm run test:e2e:debug
+
+# E2Eテストのヘッドモード（ブラウザ表示）
+npm run test:e2e:headed
 ```
 
 ### テスト構成
-- **単体テスト**: コンポーネント・フック・ユーティリティ
+- **単体テスト**: コンポーネント・フック・ユーティリティ（Jest + React Testing Library）
 - **統合テスト**: ページレベルの機能テスト
-- **E2Eテスト**: ユーザーフローの自動テスト
-- **ビジュアルテスト**: Storybook + Chromatic
+- **E2Eテスト**: エンドツーエンドのユーザーフローテスト（Playwright）
+- **アクセシビリティテスト**: WCAG準拠のアクセシビリティ検証
+- **パフォーマンステスト**: Core Web Vitals とページ速度測定
+- **API統合テスト**: バックエンドAPIとの統合テスト
 
 ### テスト例
+
+#### 単体テスト（Jest + React Testing Library）
 ```typescript
 // コンポーネントテストの例
 import { render, screen } from '@testing-library/react';
@@ -211,6 +224,73 @@ describe('VideoCard', () => {
     expect(screen.getByText('雑談')).toBeInTheDocument();
     expect(screen.getByRole('img')).toHaveAttribute('alt', 'テスト配信');
   });
+});
+```
+
+#### E2Eテスト（Playwright）
+```typescript
+// E2Eテストの例
+import { test, expect } from '@playwright/test';
+
+test.describe('ホームページ', () => {
+  test('ページタイトルが正しく表示される', async ({ page }) => {
+    await page.goto('/');
+    await expect(page).toHaveTitle(/白雪巴ファンサイト|Diopside/);
+  });
+
+  test('ナビゲーションメニューが表示される', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('nav')).toBeVisible();
+    
+    const expectedLinks = ['ホーム', 'アーカイブ', '検索', 'メモリーゲーム'];
+    for (const linkText of expectedLinks) {
+      const link = page.getByRole('link', { name: linkText });
+      await expect(link).toBeVisible();
+    }
+  });
+});
+```
+
+#### アクセシビリティテスト
+```typescript
+// アクセシビリティテストの例
+test('基本的なランドマーク要素が存在する', async ({ page }) => {
+  await page.goto('/');
+  
+  // メインコンテンツ領域
+  const main = page.locator('main, [role="main"]');
+  await expect(main).toBeVisible();
+
+  // ナビゲーション
+  const nav = page.locator('nav, [role="navigation"]');
+  await expect(nav).toBeVisible();
+
+  // ヘッダー
+  const header = page.locator('header, [role="banner"]');
+  await expect(header).toBeVisible();
+});
+```
+
+#### パフォーマンステスト
+```typescript
+// パフォーマンステストの例
+test('Core Web Vitals が基準を満たす', async ({ page }) => {
+  await page.goto('/');
+  
+  // Largest Contentful Paint (LCP) の測定
+  const lcpMetric = await page.evaluate(() => {
+    return new Promise((resolve) => {
+      new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        const lastEntry = entries[entries.length - 1];
+        resolve(lastEntry.startTime);
+      }).observe({ entryTypes: ['largest-contentful-paint'] });
+    });
+  });
+
+  if (lcpMetric) {
+    expect(lcpMetric).toBeLessThan(2500); // LCP < 2.5s (Good)
+  }
 });
 ```
 
