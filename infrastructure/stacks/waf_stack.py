@@ -35,7 +35,7 @@ class WafStack(cdk.Stack):
         # Export WebACL ARN for cross-stack reference
         cdk.CfnOutput(
             self,
-            "WebACLArn",
+            f"WebACLArn{self.env_name.title()}",
             value=self.web_acl.attr_arn,
             export_name=f"WebACLArn-{self.env_name}",
             description=f"WebACL ARN for {self.env_name} environment",

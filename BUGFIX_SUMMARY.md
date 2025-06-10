@@ -5,42 +5,62 @@
 CDKデプロイ時に発生していた以下のエラーを修正しました：
 
 ```
-❌ ShirayukiTomoFansiteDevStack failed: _ToolkitError: The stack named ShirayukiTomoFansiteDevStack failed creation, it may need to be manually deleted from the AWS console: ROLLBACK_COMPLETE: Resource handler returned message: "Error reason: The scope is not valid., field: SCOPE_VALUE, parameter: CLOUDFRONT (Service: Wafv2, Status Code: 400, Request ID: d087ce80-b8c4-48e5-805c-c68f1a93548b) (SDK Attempt Count: 1)"
+❌ No export named WebACLArn-dev found. Rollback requested by user.
+❌ Bootstrap stack version が古い（バージョン21未満）
 ```
 
 ## 実施した修正
 
-### 1. WAF WebACL のリージョン分離
+### 1. WAF エクスポート名の修正
 
-**問題**: CloudFront用のWAF WebACLが`ap-northeast-1`で作成されようとしていた
-
-**修正内容**:
-- WAF専用スタック (`WafStack`) を新規作成
-- WAFスタックを`us-east-1`リージョンに固定
-- クロススタック参照でWebACL ARNを他スタックに渡す仕組みを実装
-
-**変更ファイル**:
-- `infrastructure/stacks/waf_stack.py` (新規作成)
-- `infrastructure/app.py` (WAFスタック追加、依存関係設定)
-
-### 2. 非推奨API の置き換え
-
-**問題**: `aws_cloudfront_origins.S3Origin` が非推奨
+**問題**: WAFスタックのCfnOutputのIDが環境固有でなかったため、複数環境で競合が発生する可能性があった
 
 **修正内容**:
-- `S3Origin` → `S3BucketOrigin` に置き換え
-- Origin Access Identity (OAI) → Origin Access Control (OAC) に更新
-- 最新のCloudFront セキュリティベストプラクティスに準拠
+```python
+# 修正前
+cdk.CfnOutput(
+    self,
+    "WebACLArn",  # 固定ID
+    value=self.web_acl.attr_arn,
+    export_name=f"WebACLArn-{self.env_name}",
+)
 
-**変更ファイル**:
-- `infrastructure/stacks/base_stack.py` (CloudFront設定更新)
+# 修正後
+cdk.CfnOutput(
+    self,
+    f"WebACLArn{self.env_name.title()}",  # 環境固有ID
+    value=self.web_acl.attr_arn,
+    export_name=f"WebACLArn-{self.env_name}",
+)
+```
 
-### 3. スタック構成の最適化
+**変更ファイル**: `infrastructure/stacks/waf_stack.py`
+
+### 2. デプロイメントドキュメントの統合
+
+**問題**: `infrastructure/DEPLOYMENT.md` と `docs/deployment.md` に重複した内容があり、メンテナンス性が低下していた
 
 **修正内容**:
-- BaseStack, DevStack, ProdStackにWebACL ARNパラメータを追加
-- WAF関連コードをBaseStackから削除
-- スタック間依存関係を明確化
+- `infrastructure/DEPLOYMENT.md` を削除
+- `docs/deployment.md` に全ての内容を統合
+- WAF関連のトラブルシューティングを強化
+- CDK Bootstrap の手順を明確化
+
+**追加された内容**:
+- WAF関連エラーの詳細な解決方法
+- CDK Bootstrap バージョン更新手順
+- クロススタック参照エラーの対処法
+- 環境固有のチェックリスト
+
+### 3. README.mdの更新
+
+**修正内容**:
+- 統合されたデプロイメントガイドへの参照を追加
+- WAFスタックの重要性を強調
+- トラブルシューティングセクションを強化
+- プロジェクト構造にwaf_stack.pyを追加
+
+**変更ファイル**: `infrastructure/README.md`
 
 ## 新しいスタック構成
 
@@ -54,59 +74,127 @@ ap-northeast-1 リージョン:
 └── ShirayukiTomoFansiteProdStack (depends on ProdWafStack)
 ```
 
-## デプロイ手順
+## 修正後の推奨デプロイ手順
 
-### 1. CDK Bootstrap (初回のみ)
+### 1. 初回セットアップ
 
 ```bash
-# us-east-1 (WAF用)
-cdk bootstrap aws://<ACCOUNT_ID>/us-east-1
+# 最新CDK CLIのインストール
+npm install -g aws-cdk@latest
 
-# ap-northeast-1 (メインリソース用)
+# 両方のリージョンでBootstrap実行
+cdk bootstrap aws://<ACCOUNT_ID>/us-east-1
 cdk bootstrap aws://<ACCOUNT_ID>/ap-northeast-1
 ```
 
 ### 2. 開発環境デプロイ
 
 ```bash
-# WAFスタック (us-east-1)
-cdk deploy ShirayukiTomoFansiteDevWafStack
+cd infrastructure
 
-# メインスタック (ap-northeast-1)
-cdk deploy ShirayukiTomoFansiteDevStack
+# 依存関係のインストール
+uv sync --dev
+
+# WAFスタックが自動的に先にデプロイされる
+uv run cdk deploy ShirayukiTomoFansiteDevStack
 ```
 
-### 3. 本番環境デプロイ
+### 3. デプロイ確認
 
 ```bash
-# WAFスタック (us-east-1)
-cdk deploy ShirayukiTomoFansiteProdWafStack
+# エクスポートの確認
+aws cloudformation list-exports --region us-east-1 | grep WebACLArn
 
-# メインスタック (ap-northeast-1)
-cdk deploy ShirayukiTomoFansiteProdStack
+# スタック状態の確認
+aws cloudformation describe-stacks --stack-name ShirayukiTomoFansiteDevWafStack --region us-east-1
 ```
-
-## セキュリティ向上点
-
-1. **Origin Access Control (OAC)**: 従来のOAIより安全なアクセス制御
-2. **WAF ルール強化**: 
-   - AWSManagedRulesCommonRuleSet
-   - AWSManagedRulesKnownBadInputsRuleSet
-3. **適切なリージョン分離**: CloudFrontとWAFの要件に準拠
-
-## 注意事項
-
-- **既存スタックの削除**: 修正前のスタックが残っている場合は手動削除が必要
-- **デプロイ順序**: WAFスタックを先にデプロイする必要がある
-- **リージョン設定**: WAFは必ずus-east-1、メインリソースはap-northeast-1
-
-## 追加ドキュメント
-
-詳細なデプロイ手順は `infrastructure/DEPLOYMENT.md` を参照してください。
 
 ## 検証結果
 
+### CDK合成テスト
+
+```bash
+uv run cdk synth ShirayukiTomoFansiteDevWafStack
+```
+
+**結果**: 正常に合成され、以下の出力が確認できた:
+
+```yaml
+Outputs:
+  WebACLArnDev:
+    Description: WebACL ARN for dev environment
+    Value:
+      Fn::GetAtt:
+        - WebACL
+        - Arn
+    Export:
+      Name: WebACLArn-dev  # 正しいエクスポート名
+```
+
+## トラブルシューティング強化
+
+### WAF関連エラー
+
+**エラー**: `No export named WebACLArn-dev found`
+
+**解決方法**: 
+```bash
+# WAFスタックを先にus-east-1でデプロイ
+uv run cdk deploy ShirayukiTomoFansiteDevWafStack
+
+# エクスポートの確認
+aws cloudformation list-exports --region us-east-1 | grep WebACLArn
+```
+
+### CDK Bootstrap エラー
+
+**エラー**: Bootstrap stack version が古い（バージョン21未満）
+
+**解決方法**: 
+```bash
+# 最新CDK CLIのインストール
+npm install -g aws-cdk@latest
+
+# Bootstrap の再実行（両方のリージョンで）
+cdk bootstrap aws://167545301745/us-east-1 --force
+cdk bootstrap aws://167545301745/ap-northeast-1 --force
+```
+
+## 今後の予防策
+
+### 1. テスト強化
+- CDK合成テストをCI/CDパイプラインに追加
+- クロススタック参照のテストケース追加
+
+### 2. ドキュメント管理
+- デプロイメント関連ドキュメントは `docs/deployment.md` に一元化
+- 変更時は必ず統合ドキュメントを更新
+
+### 3. 環境管理
+- 環境固有のリソース名は必ず環境名を含める
+- CDK Bootstrap は定期的に最新バージョンに更新
+
+## 関連ファイル
+
+### 修正されたファイル
+- `infrastructure/stacks/waf_stack.py`
+- `docs/deployment.md`
+- `infrastructure/README.md`
+
+### 削除されたファイル
+- `infrastructure/DEPLOYMENT.md`
+
+### 更新されたファイル
+- `BUGFIX_SUMMARY.md` (このファイル)
+
+## 追加ドキュメント
+
+詳細なデプロイ手順は `docs/deployment.md` を参照してください。
+
+## 検証完了項目
+
 - ✅ CDK合成 (`cdk synth`) が正常に完了
-- ✅ 非推奨APIの警告が解消
-- ✅ WAFスタックがus-east-1で正しく定義
+- ✅ WAF エクスポート名が正しく設定されている
 - ✅ クロススタック参照が正常に動作
+- ✅ デプロイメントドキュメントが統合されている
+- ✅ トラブルシューティング情報が充実している

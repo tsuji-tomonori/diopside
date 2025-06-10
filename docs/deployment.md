@@ -39,6 +39,20 @@
 3. **インフラデプロイ** → AWS CDK による Infrastructure as Code
 4. **アプリケーションデプロイ** → Lambda関数・S3への自動デプロイ
 
+### スタック依存関係
+
+```
+ShirayukiTomoFansiteDevWafStack (us-east-1)
+    ↓
+ShirayukiTomoFansiteDevStack (ap-northeast-1)
+
+ShirayukiTomoFansiteProdWafStack (us-east-1)
+    ↓
+ShirayukiTomoFansiteProdStack (ap-northeast-1)
+```
+
+**重要**: WAFスタックは必ずus-east-1リージョンでデプロイし、メインスタックより先にデプロイする必要があります。
+
 ## 🔧 前提条件
 
 ### 必要なツール
@@ -47,6 +61,7 @@
 - **Python** 3.13以上
 - **uv** (Python パッケージマネージャー)
 - **npm** 10.x以上
+- **AWS CDK CLI** 2.149.0以上 (`npm install -g aws-cdk`)
 
 ### AWS アカウント設定
 ```bash
@@ -66,6 +81,7 @@ export AWS_DEFAULT_REGION=ap-northeast-1
 - **CloudFront**: ディストリビューション作成・更新
 - **API Gateway**: API作成・更新
 - **IAM**: ロール・ポリシー作成
+- **WAF v2**: WebACL作成・更新（us-east-1リージョン）
 
 ## 🏗️ インフラストラクチャのデプロイ
 
@@ -82,35 +98,49 @@ uv sync --dev
 npm install -g aws-cdk
 
 # CDK Bootstrap（初回のみ）
-uv run cdk bootstrap
+# WAF用（us-east-1）とメインリソース用（ap-northeast-1）の両方で実行
+cdk bootstrap aws://<ACCOUNT_ID>/us-east-1
+cdk bootstrap aws://<ACCOUNT_ID>/ap-northeast-1
 ```
+
+**重要**: `<ACCOUNT_ID>` は実際のAWSアカウントIDに置き換えてください。
 
 ### 2. 開発環境のデプロイ
 
 ```bash
-# 開発環境スタックのデプロイ
+# WAFスタックのデプロイ（us-east-1）- 必ず最初に実行
+uv run cdk deploy ShirayukiTomoFansiteDevWafStack
+
+# メインスタックのデプロイ（ap-northeast-1）
 uv run cdk deploy ShirayukiTomoFansiteDevStack
 
-# デプロイ前の差分確認
-uv run cdk diff ShirayukiTomoFansiteDevStack
-
-# CloudFormation テンプレートの生成
-uv run cdk synth ShirayukiTomoFansiteDevStack
+# または一括デプロイ（依存関係が自動解決される）
+uv run cdk deploy ShirayukiTomoFansiteDevStack
 ```
 
 ### 3. 本番環境のデプロイ
 
 ```bash
-# 本番環境スタックのデプロイ
+# WAFスタックのデプロイ（us-east-1）
+uv run cdk deploy ShirayukiTomoFansiteProdWafStack
+
+# メインスタックのデプロイ（ap-northeast-1）
 uv run cdk deploy ShirayukiTomoFansiteProdStack
 
 # 承認が必要な変更の確認
 uv run cdk deploy ShirayukiTomoFansiteProdStack --require-approval broadening
 ```
 
-### 4. デプロイ後の確認
+### 4. デプロイ前の確認
 
 ```bash
+# 合成（テンプレート生成）のみ実行
+uv run cdk synth
+
+# 差分確認
+uv run cdk diff ShirayukiTomoFansiteDevWafStack
+uv run cdk diff ShirayukiTomoFansiteDevStack
+
 # スタック情報の確認
 aws cloudformation describe-stacks --stack-name ShirayukiTomoFansiteDevStack
 
@@ -307,16 +337,66 @@ aws wafv2 get-web-acl --scope CLOUDFRONT --id your-web-acl-id --region us-east-1
 
 ### よくある問題と解決方法
 
-#### 1. CDK Bootstrap エラー
-```bash
-# Bootstrap の再実行
-uv run cdk bootstrap --force
+#### 1. WAF関連のエラー
 
-# 特定のリージョンでのBootstrap
-uv run cdk bootstrap aws://123456789012/ap-northeast-1
+**エラー**: `No export named WebACLArn-dev found. Rollback requested by user.`
+
+**原因**: WAFスタックがデプロイされていない、または異なるリージョンにデプロイされている
+
+**解決方法**: 
+```bash
+# WAFスタックを先にus-east-1でデプロイ
+uv run cdk deploy ShirayukiTomoFansiteDevWafStack
+
+# エクスポートの確認
+aws cloudformation list-exports --region us-east-1 | grep WebACLArn
 ```
 
-#### 2. Lambda関数のタイムアウト
+**エラー**: `The scope is not valid., field: SCOPE_VALUE, parameter: CLOUDFRONT`
+
+**原因**: WAF WebACLがus-east-1以外のリージョンで作成されようとしている
+
+**解決方法**: WAFスタックが正しくus-east-1で作成されていることを確認
+
+#### 2. CDK Bootstrap エラー
+
+**エラー**: Bootstrap stack version が古い（バージョン21未満）
+
+**解決方法**: 
+```bash
+# 最新CDK CLIのインストール
+npm install -g aws-cdk@latest
+
+# Bootstrap の再実行（両方のリージョンで）
+cdk bootstrap aws://167545301745/us-east-1 --force
+cdk bootstrap aws://167545301745/ap-northeast-1 --force
+
+# バージョン確認
+cdk --version
+```
+
+#### 3. クロススタック参照エラー
+
+**エラー**: `WebACLArn-dev` が見つからない
+
+**原因**: 
+- WAFスタックがデプロイされていない
+- 異なるリージョンにデプロイされている
+- エクスポート名が一致していない
+
+**解決方法**: 
+```bash
+# WAFスタックの状態確認
+aws cloudformation describe-stacks --stack-name ShirayukiTomoFansiteDevWafStack --region us-east-1
+
+# エクスポートの確認
+aws cloudformation list-exports --region us-east-1
+
+# WAFスタックの再デプロイ
+uv run cdk deploy ShirayukiTomoFansiteDevWafStack
+```
+
+#### 4. Lambda関数のタイムアウト
 ```bash
 # CloudWatch Logsでエラー確認
 aws logs filter-log-events \
@@ -324,7 +404,7 @@ aws logs filter-log-events \
   --filter-pattern "Task timed out"
 ```
 
-#### 3. S3デプロイエラー
+#### 5. S3デプロイエラー
 ```bash
 # バケットポリシーの確認
 aws s3api get-bucket-policy --bucket your-bucket-name
@@ -333,7 +413,7 @@ aws s3api get-bucket-policy --bucket your-bucket-name
 aws s3 ls s3://your-bucket-name/ --recursive
 ```
 
-#### 4. CloudFront キャッシュ問題
+#### 6. CloudFront キャッシュ問題
 ```bash
 # キャッシュ無効化の確認
 aws cloudfront list-invalidations --distribution-id your-distribution-id
@@ -382,6 +462,22 @@ aws s3 sync s3://backup-bucket/previous-version/ s3://your-bucket-name/
 aws cloudfront create-invalidation --distribution-id your-distribution-id --paths "/*"
 ```
 
+## 🗑️ 削除手順
+
+スタックを削除する場合は、依存関係の逆順で削除してください：
+
+```bash
+# 開発環境の削除
+uv run cdk destroy ShirayukiTomoFansiteDevStack
+uv run cdk destroy ShirayukiTomoFansiteDevWafStack
+
+# 本番環境の削除
+uv run cdk destroy ShirayukiTomoFansiteProdStack
+uv run cdk destroy ShirayukiTomoFansiteProdWafStack
+```
+
+**注意**: 削除前にデータのバックアップを取ることを強く推奨します。
+
 ## 📋 チェックリスト
 
 ### デプロイ前チェック
@@ -391,14 +487,25 @@ aws cloudfront create-invalidation --distribution-id your-distribution-id --path
 - [ ] 環境変数が正しく設定されている
 - [ ] AWS認証情報が設定されている
 - [ ] 必要なAWS権限が付与されている
+- [ ] CDK Bootstrap が両方のリージョンで完了している
+- [ ] WAFスタックが先にデプロイされている（クロススタック参照の場合）
 
 ### デプロイ後チェック
 
 - [ ] インフラリソースが正常に作成されている
+- [ ] WAF WebACLが正しくエクスポートされている
 - [ ] API エンドポイントが応答している
 - [ ] フロントエンドが正常に表示されている
 - [ ] CloudWatch ログが出力されている
 - [ ] メトリクスが正常に収集されている
+- [ ] CloudFrontディストリビューションが正常に動作している
+
+### WAF関連チェック
+
+- [ ] WAFスタックがus-east-1リージョンにデプロイされている
+- [ ] WebACLArnが正しい名前でエクスポートされている（`WebACLArn-dev`、`WebACLArn-prod`）
+- [ ] CloudFormationエクスポートリストで確認できる
+- [ ] メインスタックでインポートが成功している
 
 ---
 

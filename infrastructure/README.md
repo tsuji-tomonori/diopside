@@ -59,16 +59,23 @@ npm install -g aws-cdk
 
 ### デプロイ
 
+詳細なデプロイ手順については、[デプロイメントガイド](../docs/deployment.md)を参照してください。
+
+**クイックスタート**:
+
 ```bash
-# 開発環境へのデプロイ
-cdk deploy ShirayukiTomoFansiteDevStack
+# CDK Bootstrap（初回のみ）
+cdk bootstrap aws://<ACCOUNT_ID>/us-east-1
+cdk bootstrap aws://<ACCOUNT_ID>/ap-northeast-1
+
+# 開発環境へのデプロイ（WAFスタックが自動的に先にデプロイされます）
+uv run cdk deploy ShirayukiTomoFansiteDevStack
 
 # 本番環境へのデプロイ
-cdk deploy ShirayukiTomoFansiteProdStack
-
-# 全環境へのデプロイ
-cdk deploy --all
+uv run cdk deploy ShirayukiTomoFansiteProdStack
 ```
+
+**重要**: WAFスタックは必ずus-east-1リージョンでデプロイされ、メインスタックより先に実行される必要があります。
 
 ### その他のCDKコマンド
 
@@ -113,7 +120,8 @@ infrastructure/
 │   ├── __init__.py
 │   ├── base_stack.py     # 共通インフラコンポーネント
 │   ├── dev_stack.py      # 開発環境スタック
-│   └── prod_stack.py     # 本番環境スタック
+│   ├── prod_stack.py     # 本番環境スタック
+│   └── waf_stack.py      # WAFスタック（us-east-1専用）
 └── tests/                # テストファイル
     ├── __init__.py
     └── test_*.py
@@ -145,9 +153,20 @@ infrastructure/
 
 ### よくある問題
 
-1. **デプロイエラー**: AWS認証情報が正しく設定されているか確認
-2. **権限エラー**: IAMユーザーに必要な権限があるか確認
-3. **リソース名の競合**: S3バケット名は全世界で一意である必要があります
+1. **WAF関連エラー**: `No export named WebACLArn-dev found`
+   - WAFスタックが先にデプロイされているか確認
+   - us-east-1リージョンでWAFスタックがデプロイされているか確認
+   
+2. **CDK Bootstrap エラー**: Bootstrap stack version が古い
+   - 最新のCDK CLIを使用して両方のリージョンでBootstrapを再実行
+   
+3. **デプロイエラー**: AWS認証情報が正しく設定されているか確認
+
+4. **権限エラー**: IAMユーザーに必要な権限があるか確認
+
+5. **リソース名の競合**: S3バケット名は全世界で一意である必要があります
+
+詳細なトラブルシューティングについては、[デプロイメントガイド](../docs/deployment.md#-トラブルシューティング)を参照してください。
 
 ### ログの確認
 
