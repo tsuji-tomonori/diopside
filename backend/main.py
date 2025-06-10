@@ -2,6 +2,14 @@
 
 from app.main import app
 
+# Lambda handler for AWS Lambda
+try:
+    from mangum import Mangum
+    handler = Mangum(app)
+except ImportError:
+    # Mangum not available, skip Lambda handler
+    pass
+
 if __name__ == "__main__":
     import uvicorn
 
