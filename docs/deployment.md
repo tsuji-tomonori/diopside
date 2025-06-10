@@ -341,16 +341,29 @@ aws wafv2 get-web-acl --scope CLOUDFRONT --id your-web-acl-id --region us-east-1
 
 **エラー**: `No export named WebACLArn-dev found. Rollback requested by user.`
 
-**原因**: WAFスタックがデプロイされていない、または異なるリージョンにデプロイされている
+**原因**: CloudFormationのエクスポート機能はクロスリージョンで動作しないため、WAFスタック（us-east-1）からメインスタック（ap-northeast-1）への参照が失敗する
 
 **解決方法**: 
 ```bash
+# 新しいSSMパラメータベースのアプローチを使用
+# WAFスタックがSSMパラメータにWebACL ARNを保存し、
+# メインスタックがSSMパラメータから読み取る
+
 # WAFスタックを先にus-east-1でデプロイ
 uv run cdk deploy ShirayukiTomoFansiteDevWafStack
 
-# エクスポートの確認
-aws cloudformation list-exports --region us-east-1 | grep WebACLArn
+# SSMパラメータの確認
+aws ssm get-parameter --name "/shirayuki-tomo-fansite/dev/waf/webacl-arn" --region us-east-1
+
+# メインスタックのデプロイ（SSMパラメータから自動取得）
+uv run cdk deploy ShirayukiTomoFansiteDevStack
 ```
+
+**技術的詳細**: 
+- CloudFormationエクスポートはリージョン内でのみ動作
+- SSMパラメータはクロスリージョンアクセスが可能
+- WAFスタック: `/shirayuki-tomo-fansite/{env}/waf/webacl-arn` にARNを保存
+- メインスタック: CloudFrontコンストラクトでSSMパラメータから読み取り
 
 **エラー**: `The scope is not valid., field: SCOPE_VALUE, parameter: CLOUDFRONT`
 
@@ -380,21 +393,29 @@ cdk --version
 **エラー**: `WebACLArn-dev` が見つからない
 
 **原因**: 
-- WAFスタックがデプロイされていない
-- 異なるリージョンにデプロイされている
-- エクスポート名が一致していない
+- CloudFormationエクスポートはクロスリージョンで動作しない
+- WAFスタック（us-east-1）とメインスタック（ap-northeast-1）が異なるリージョンにある
+- 従来のCloudFormationエクスポート/インポート機能を使用している
 
 **解決方法**: 
 ```bash
+# 新しいSSMパラメータベースのアプローチを使用
 # WAFスタックの状態確認
 aws cloudformation describe-stacks --stack-name ShirayukiTomoFansiteDevWafStack --region us-east-1
 
-# エクスポートの確認
-aws cloudformation list-exports --region us-east-1
+# SSMパラメータの確認（新しいアプローチ）
+aws ssm get-parameter --name "/shirayuki-tomo-fansite/dev/waf/webacl-arn" --region us-east-1
 
-# WAFスタックの再デプロイ
+# WAFスタックの再デプロイ（SSMパラメータ対応版）
 uv run cdk deploy ShirayukiTomoFansiteDevWafStack
+
+# メインスタックのデプロイ（SSMパラメータから自動取得）
+uv run cdk deploy ShirayukiTomoFansiteDevStack
 ```
+
+**アーキテクチャの変更点**:
+- **旧**: CloudFormationエクスポート → CloudFormationインポート（同一リージョンのみ）
+- **新**: WAFスタック → SSMパラメータ → メインスタック（クロスリージョン対応）
 
 #### 4. Lambda関数のタイムアウト
 ```bash
@@ -503,9 +524,10 @@ uv run cdk destroy ShirayukiTomoFansiteProdWafStack
 ### WAF関連チェック
 
 - [ ] WAFスタックがus-east-1リージョンにデプロイされている
-- [ ] WebACLArnが正しい名前でエクスポートされている（`WebACLArn-dev`、`WebACLArn-prod`）
-- [ ] CloudFormationエクスポートリストで確認できる
-- [ ] メインスタックでインポートが成功している
+- [ ] WebACL ARNがSSMパラメータに正しく保存されている（`/shirayuki-tomo-fansite/{env}/waf/webacl-arn`）
+- [ ] SSMパラメータがus-east-1リージョンで確認できる
+- [ ] メインスタックでSSMパラメータからの読み取りが成功している
+- [ ] CloudFrontディストリビューションにWAFが正しく関連付けられている
 
 ---
 

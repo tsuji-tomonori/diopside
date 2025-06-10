@@ -47,7 +47,7 @@ def main() -> None:
     dev_stack = DevStack(
         app,
         "ShirayukiTomoFansiteDevStack",
-        web_acl_arn=cdk.Fn.import_value("WebACLArn-dev"),
+        # WebACL ARN will be fetched from SSM Parameter automatically
         env=cdk.Environment(
             account=app.node.try_get_context("account"),
             region="ap-northeast-1",
@@ -64,7 +64,7 @@ def main() -> None:
     prod_stack = ProdStack(
         app,
         "ShirayukiTomoFansiteProdStack",
-        web_acl_arn=cdk.Fn.import_value("WebACLArn-prod"),
+        # WebACL ARN will be fetched from SSM Parameter automatically
         env=cdk.Environment(
             account=app.node.try_get_context("account"),
             region="ap-northeast-1",

@@ -1,23 +1,23 @@
-"""WAF stack for CloudFront (must be deployed in us-east-1)."""
+"""WAF construct for CloudFront protection."""
 
-from typing import Any
+from typing import Any, Self
 
 import aws_cdk as cdk
 from aws_cdk import aws_ssm as ssm, aws_wafv2 as wafv2
 from constructs import Construct
 
 
-class WafStack(cdk.Stack):
-    """WAF stack containing CloudFront WebACL (us-east-1 only)."""
+class WafConstruct(Construct):
+    """WAF construct for CloudFront protection."""
 
     def __init__(
-        self,
+        self: Self,
         scope: Construct,
         construct_id: str,
         environment: str,
-        **kwargs: Any,
+        **kwargs: Any,  # noqa: ANN401
     ) -> None:
-        """Initialize the WAF stack.
+        """Initialize WAF construct.
         
         Args:
             scope: The scope in which to define this construct
@@ -29,35 +29,35 @@ class WafStack(cdk.Stack):
 
         self.env_name = environment
         
-        # Create WAF for CloudFront
-        self.web_acl = self._create_waf()
+        # Create WAF WebACL
+        self.web_acl = self._create_web_acl()
         
         # Store WebACL ARN in SSM Parameter for cross-region access
-        ssm.StringParameter(
+        self.ssm_parameter = ssm.StringParameter(
             self,
-            f"WebACLArnParameter{self.env_name.title()}",
+            "WebACLArnParameter",
             parameter_name=f"/shirayuki-tomo-fansite/{self.env_name}/waf/webacl-arn",
             string_value=self.web_acl.attr_arn,
             description=f"WebACL ARN for {self.env_name} environment",
         )
         
-        # Also export for same-region access (backward compatibility)
+        # Output WebACL ARN
         cdk.CfnOutput(
             self,
-            f"WebACLArn{self.env_name.title()}",
+            "WebACLArn",
             value=self.web_acl.attr_arn,
-            export_name=f"WebACLArn-{self.env_name}",
             description=f"WebACL ARN for {self.env_name} environment",
         )
 
-    def _create_waf(self) -> wafv2.CfnWebACL:
-        """Create WAF for basic web attack protection."""
-        waf = wafv2.CfnWebACL(
+    def _create_web_acl(self: Self) -> wafv2.CfnWebACL:
+        """Create WAF WebACL with security rules."""
+        web_acl = wafv2.CfnWebACL(
             self,
             "WebACL",
             scope="CLOUDFRONT",
             default_action=wafv2.CfnWebACL.DefaultActionProperty(allow={}),
             rules=[
+                # AWS Managed Rules - Common Rule Set
                 wafv2.CfnWebACL.RuleProperty(
                     name="AWSManagedRulesCommonRuleSet",
                     priority=1,
@@ -74,6 +74,7 @@ class WafStack(cdk.Stack):
                         metric_name="CommonRuleSetMetric",
                     ),
                 ),
+                # AWS Managed Rules - Known Bad Inputs Rule Set
                 wafv2.CfnWebACL.RuleProperty(
                     name="AWSManagedRulesKnownBadInputsRuleSet",
                     priority=2,
@@ -99,6 +100,6 @@ class WafStack(cdk.Stack):
         )
         
         # Add Name tag
-        cdk.Tags.of(waf).add("Name", f"shirayuki-tomo-fansite-waf-{self.env_name}")
+        cdk.Tags.of(web_acl).add("Name", f"shirayuki-tomo-fansite-waf-{self.env_name}")
         
-        return waf
+        return web_acl
