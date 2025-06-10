@@ -1,136 +1,224 @@
-# Diopside Backend
+# Diopside Backend API
 
-Backend API for 白雪巴 VTuber fan site - Archive management system
+白雪巴ファンサイトのバックエンドAPI - FastAPIベースのサーバーレスアプリケーション
 
-## 🚀 Features
+## 🎯 概要
 
-- **FastAPI** with Python 3.12+ and full type hints
-- **DynamoDB** integration for video archive data
-- **RESTful API** with comprehensive endpoints
-- **Automatic documentation** with OpenAPI/Swagger
-- **CORS support** for frontend integration
-- **Comprehensive testing** with pytest
-- **Code quality** with mypy and ruff
+このバックエンドは、白雪巴VTuberの配信アーカイブ管理システムのAPIを提供します。FastAPIフレームワークを使用し、AWS Lambdaでのサーバーレス実行に対応しています。
 
-## 📋 API Endpoints
+## 🏗️ アーキテクチャ
 
-### Core Endpoints
+### 技術スタック
+- **フレームワーク**: FastAPI 0.115.x
+- **言語**: Python 3.13
+- **データベース**: AWS DynamoDB
+- **ストレージ**: AWS S3
+- **デプロイ**: AWS Lambda + Mangum
+- **パッケージ管理**: uv
 
-- `GET /` - Health check
-- `GET /health` - Service health status
-- `GET /docs` - Interactive API documentation
-- `GET /redoc` - Alternative API documentation
+### API設計
+- **RESTful API**: リソースベースのエンドポイント設計
+- **OpenAPI**: 自動生成されるAPI仕様書
+- **Pydantic**: 型安全なデータバリデーション
+- **非同期処理**: async/awaitによる高パフォーマンス
 
-### Video Endpoints
-
-- `GET /api/videos?year=YYYY` - Get videos by year (with pagination)
-- `GET /api/videos/{video_id}` - Get single video by ID
-- `GET /api/videos/by-tag?path=tag/path` - Get videos by hierarchical tag path
-- `GET /api/videos/random?count=N` - Get random videos for discovery
-- `GET /api/videos/memory?pairs=N` - Get thumbnail pairs for memory game
-
-### Tag Endpoints
-
-- `GET /api/tags` - Get hierarchical tag tree structure
-
-## 🏗️ Architecture
+## 📁 プロジェクト構成
 
 ```
 backend/
 ├── app/
-│   ├── models/          # Pydantic data models
-│   ├── services/        # Business logic layer
-│   ├── routers/         # API route handlers
-│   └── main.py         # FastAPI application
-├── tests/              # Test suite
-├── main.py            # Application entry point
-└── pyproject.toml     # Project configuration
+│   ├── __init__.py
+│   ├── main.py              # FastAPIアプリケーション
+│   ├── models/              # Pydanticデータモデル
+│   ├── services/            # ビジネスロジック層
+│   └── routers/             # APIルートハンドラー
+├── tests/                   # テストスイート
+├── main.py                  # アプリケーションエントリーポイント
+└── pyproject.toml          # プロジェクト設定
 ```
 
-## 🛠️ Development Setup
+## 🚀 セットアップ
 
-### Prerequisites
+### 前提条件
+- Python 3.13以上
+- uv (推奨パッケージマネージャー)
+- AWS CLI (デプロイ時)
 
-- Python 3.12+
-- uv (Python package manager)
+### ローカル開発環境
 
-### Installation
-
+1. **依存関係のインストール**
 ```bash
-# Install uv if not already installed
+cd backend
+
+# uvがインストールされていない場合
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install dependencies
-uv sync
-
-# Activate virtual environment
-source .venv/bin/activate  # Linux/macOS
-# or
-.venv\Scripts\activate     # Windows
+# 依存関係のインストール
+uv sync --dev
 ```
 
-### Running the Application
-
+2. **環境変数の設定**
 ```bash
-# Development server with hot reload
+# 環境変数の設定（必要に応じて）
+export DYNAMODB_TABLE_NAME=ArchiveMetadata-dev
+export S3_BUCKET_NAME=shirayuki-tomo-fansite-dev
+export ENVIRONMENT=dev
+export AWS_REGION=ap-northeast-1
+```
+
+3. **開発サーバーの起動**
+```bash
+# 開発サーバー（ホットリロード付き）
 uv run python main.py
 
-# Or using uvicorn directly
+# または直接uvicornを使用
 uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-The API will be available at:
+4. **API仕様書の確認**
 - **API**: http://localhost:8000
-- **Documentation**: http://localhost:8000/docs
+- **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
 
-## 🧪 Testing
+## 📋 API エンドポイント
 
-```bash
-# Run all tests
-uv run pytest
+### コアエンドポイント
 
-# Run tests with coverage
-uv run pytest --cov=app
+- `GET /` - ヘルスチェック
+- `GET /health` - サービス健全性ステータス
+- `GET /docs` - インタラクティブAPI仕様書
+- `GET /redoc` - 代替API仕様書
 
-# Run specific test file
-uv run pytest tests/test_models.py
+### 動画エンドポイント
 
-# Run tests in verbose mode
-uv run pytest -v
-```
+#### `GET /api/videos`
+年別動画一覧の取得（ページネーション付き）
 
-## 🔍 Code Quality
+**パラメータ:**
+- `year` (int): 取得する年
+- `limit` (int, optional): 取得件数 (デフォルト: 20)
+- `offset` (int, optional): オフセット (デフォルト: 0)
 
-```bash
-# Type checking with mypy
-uv run mypy app/
-
-# Linting and formatting with ruff
-uv run ruff check app/
-uv run ruff format app/
-
-# Run all quality checks
-uv run mypy app/ && uv run ruff check app/ && uv run ruff format app/
-```
-
-## 📊 Data Models
-
-### Video Model
-
-```python
+**レスポンス例:**
+```json
 {
-    "video_id": "dQw4w9WgXcQ",           # YouTube video ID
-    "title": "【ホラーゲーム】Cry of Fear", # Video title
-    "tags": ["ゲーム実況", "ホラー"],      # Hierarchical tags
-    "year": 2023,                        # Publication year
-    "thumbnail_url": "https://...",      # Thumbnail URL
-    "created_at": "2023-10-15T14:30:00Z" # ISO8601 timestamp
+  "items": [
+    {
+      "video_id": "dQw4w9WgXcQ",
+      "title": "【ホラーゲーム】Cry of Fear",
+      "tags": ["ゲーム実況", "ホラー"],
+      "year": 2023,
+      "thumbnail_url": "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+      "created_at": "2023-10-15T14:30:00Z"
+    }
+  ],
+  "total": 150,
+  "limit": 20,
+  "offset": 0
 }
 ```
 
-### Tag Tree Structure
+#### `GET /api/videos/{video_id}`
+特定の動画詳細取得
 
+#### `GET /api/videos/by-tag`
+階層タグパスによる動画取得
+
+**パラメータ:**
+- `path` (str): 階層タグパス（例: "ゲーム実況/ホラー"）
+
+#### `GET /api/videos/random`
+ランダム動画取得（発見機能用）
+
+**パラメータ:**
+- `count` (int): 取得件数 (デフォルト: 3)
+
+#### `GET /api/videos/memory`
+メモリーゲーム用サムネイルペア取得
+
+**パラメータ:**
+- `pairs` (int): ペア数 (デフォルト: 8)
+
+### タグエンドポイント
+
+#### `GET /api/tags`
+階層タグツリー構造の取得
+
+**レスポンス例:**
+```json
+{
+  "name": "ゲーム実況",
+  "children": [
+    {
+      "name": "ホラー",
+      "children": [
+        {"name": "Cry of Fear", "count": 5}
+      ],
+      "count": 1
+    }
+  ],
+  "count": 1
+}
+```
+
+## 🧪 テスト
+
+### テスト実行
+```bash
+# 全テストの実行
+uv run pytest
+
+# カバレッジ付きテスト
+uv run pytest --cov=app
+
+# 特定のテストファイル
+uv run pytest tests/test_models.py
+
+# 詳細モードでのテスト実行
+uv run pytest -v
+```
+
+### テスト構成
+- **単体テスト**: 各モデル・サービスの個別テスト
+- **統合テスト**: API エンドポイントのテスト
+- **モックテスト**: AWS サービスのモック化
+
+## 🔍 コード品質
+
+### 品質チェック
+```bash
+# 型チェック（mypy）
+uv run mypy app/
+
+# リンティング・フォーマット（ruff）
+uv run ruff check app/
+uv run ruff format app/
+
+# 全品質チェックの実行
+uv run mypy app/ && uv run ruff check app/ && uv run ruff format app/
+```
+
+### コーディング規約
+- **PEP 8**: Python標準のスタイルガイド
+- **Type Hints**: 型注釈の必須使用
+- **Docstrings**: Google形式のドキュメント文字列
+- **Ruff**: 自動フォーマット・リンティング
+
+## 📊 データモデル
+
+### 動画モデル
+```python
+{
+    "video_id": "dQw4w9WgXcQ",           # YouTube動画ID
+    "title": "【ホラーゲーム】Cry of Fear", # 動画タイトル
+    "tags": ["ゲーム実況", "ホラー"],      # 階層タグ
+    "year": 2023,                        # 公開年
+    "thumbnail_url": "https://...",      # サムネイルURL
+    "created_at": "2023-10-15T14:30:00Z" # ISO8601タイムスタンプ
+}
+```
+
+### タグツリー構造
 ```python
 {
     "name": "ゲーム実況",
@@ -147,74 +235,117 @@ uv run mypy app/ && uv run ruff check app/ && uv run ruff format app/
 }
 ```
 
-## 🗄️ Database Schema
+## 🗄️ データベーススキーマ
 
-### DynamoDB Table: `videos`
+### DynamoDBテーブル: `videos`
 
-- **Partition Key**: `video_id` (String)
-- **GSI1**: `year` (Number) + `video_id` (String) for year-based queries
+**主キー構成:**
+- **パーティションキー**: `video_id` (String)
+- **GSI1**: `year` (Number) + `video_id` (String) - 年別クエリ用
 
-### Attributes
+**属性:**
+- `video_id`: String - YouTube動画ID
+- `title`: String - 動画タイトル
+- `tags`: List<String> - 階層タグ
+- `year`: Number - 公開年
+- `thumbnail_url`: String - サムネイルURL
+- `created_at`: String - ISO8601タイムスタンプ
 
-- `video_id`: String - YouTube video ID
-- `title`: String - Video title
-- `tags`: List<String> - Hierarchical tags
-- `year`: Number - Publication year
-- `thumbnail_url`: String - Thumbnail URL
-- `created_at`: String - ISO8601 timestamp
+## 🚀 デプロイメント
 
-## 🚀 Deployment
+このアプリケーションは以下のAWSサービスで動作するよう設計されています：
 
-This application is designed to run on AWS Lambda with:
+- **AWS Lambda**: サーバーレスコンピュート
+- **DynamoDB**: NoSQLデータベース
+- **API Gateway**: HTTP APIルーティング
+- **CloudFront**: CDNとキャッシング
 
-- **AWS Lambda**: Serverless compute
-- **DynamoDB**: NoSQL database
-- **API Gateway**: HTTP API routing
-- **CloudFront**: CDN and caching
+デプロイ設定については `infrastructure/` ディレクトリのAWS CDK設定を参照してください。
 
-See the `infrastructure/` directory for AWS CDK deployment configuration.
+## 🔧 設定
 
-## 🔧 Configuration
+### 環境変数
 
-Environment variables:
+| 変数名 | 説明 | デフォルト値 |
+|--------|------|-------------|
+| `AWS_REGION` | AWSリージョン | `ap-northeast-1` |
+| `DYNAMODB_TABLE_NAME` | DynamoDBテーブル名 | `ArchiveMetadata-dev` |
+| `S3_BUCKET_NAME` | S3バケット名 | `shirayuki-tomo-fansite-dev` |
+| `ENVIRONMENT` | 実行環境 | `dev` |
+| `LOG_LEVEL` | ログレベル | `INFO` |
 
-- `AWS_REGION`: AWS region (default: us-east-1)
-- `DYNAMODB_TABLE_NAME`: DynamoDB table name (default: videos)
+## 📝 API使用例
 
-## 📝 API Usage Examples
-
-### Get videos from 2023
-
+### 2023年の動画取得
 ```bash
 curl "http://localhost:8000/api/videos?year=2023&limit=10"
 ```
 
-### Get tag hierarchy
-
+### タグ階層による動画取得
 ```bash
 curl "http://localhost:8000/api/videos/by-tag?path=ゲーム実況/ホラー"
 ```
 
-### Get random videos
-
+### ランダム動画取得
 ```bash
 curl "http://localhost:8000/api/videos/random?count=3"
 ```
 
-### Get memory game thumbnails
-
+### メモリーゲーム用サムネイル取得
 ```bash
 curl "http://localhost:8000/api/videos/memory?pairs=8"
 ```
 
-## 🤝 Contributing
+### タグ階層取得
+```bash
+curl "http://localhost:8000/api/tags"
+```
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and quality checks
-5. Submit a pull request
+## 🛡️ セキュリティ
 
-## 📄 License
+### 認証・認可
+- **CORS**: フロントエンドからのアクセス制御
+- **レート制限**: API呼び出し頻度の制限
+- **入力検証**: Pydanticによる厳密な検証
 
-This project is part of the Diopside VTuber fan site system.
+### データ保護
+- **暗号化**: DynamoDB・S3での保存時暗号化
+- **アクセス制御**: IAMロールによる最小権限の原則
+- **監査ログ**: API アクセスの記録
+
+## 🔍 モニタリング・ログ
+
+### ログ設定
+- **CloudWatch**: Lambda実行ログ
+- **X-Ray**: 分散トレーシング
+- **カスタムメトリクス**: ビジネスメトリクスの収集
+
+### パフォーマンス最適化
+- **コールドスタート対策**: 依存関係の最小化
+- **メモリ使用量**: 128MB設定での最適化
+- **接続プール**: DynamoDB接続の再利用
+
+## 🤝 コントリビューション
+
+1. リポジトリをフォーク
+2. フィーチャーブランチを作成
+3. 変更を実装
+4. テスト・品質チェックを実行
+5. プルリクエストを提出
+
+### 開発フロー
+- **Issue**: バグ報告・機能要望
+- **プルリクエスト**: コードレビュー
+- **自動テスト**: CI/CDでの品質保証
+
+## 📄 ライセンス
+
+このプロジェクトはDiopside VTuberファンサイトシステムの一部です。
+
+---
+
+## 📞 サポート
+
+- **Issues**: [GitHub Issues](https://github.com/tsuji-tomonori/diopside/issues)
+- **API仕様**: http://localhost:8000/docs (開発時)
+- **ログ**: CloudWatch Logs (本番環境)
