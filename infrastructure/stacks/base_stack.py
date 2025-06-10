@@ -13,6 +13,7 @@ from aws_cdk import (
     aws_lambda as lambda_,
     aws_logs as logs,
     aws_s3 as s3,
+    aws_ssm as ssm,
 )
 from constructs import Construct
 
@@ -34,13 +35,21 @@ class BaseStack(cdk.Stack):
             scope: The scope in which to define this construct
             construct_id: The scoped construct ID
             environment: Environment name (dev/prod)
-            web_acl_arn: WebACL ARN from WAF stack (optional)
+            web_acl_arn: WebACL ARN from WAF stack (optional, will be fetched from SSM if not provided)
             **kwargs: Additional keyword arguments
         """
         super().__init__(scope, construct_id, **kwargs)
 
         self.env_name = environment
-        self.web_acl_arn = web_acl_arn
+        
+        # Get WebACL ARN from SSM Parameter if not provided directly
+        if web_acl_arn is None:
+            self.web_acl_arn = ssm.StringParameter.value_for_string_parameter(
+                self,
+                parameter_name=f"/shirayuki-tomo-fansite/{self.env_name}/waf/webacl-arn",
+            )
+        else:
+            self.web_acl_arn = web_acl_arn
         
         # Create S3 bucket for static hosting and thumbnails
         self.s3_bucket = self._create_s3_bucket()
