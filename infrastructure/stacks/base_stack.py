@@ -13,7 +13,6 @@ from aws_cdk import (
     aws_lambda as lambda_,
     aws_logs as logs,
     aws_s3 as s3,
-    aws_wafv2 as wafv2,
 )
 from constructs import Construct
 
@@ -26,6 +25,7 @@ class BaseStack(cdk.Stack):
         scope: Construct,
         construct_id: str,
         environment: str,
+        web_acl_arn: str | None = None,
         **kwargs: Any,
     ) -> None:
         """Initialize the base stack.
@@ -34,11 +34,13 @@ class BaseStack(cdk.Stack):
             scope: The scope in which to define this construct
             construct_id: The scoped construct ID
             environment: Environment name (dev/prod)
+            web_acl_arn: WebACL ARN from WAF stack (optional)
             **kwargs: Additional keyword arguments
         """
         super().__init__(scope, construct_id, **kwargs)
 
         self.env_name = environment
+        self.web_acl_arn = web_acl_arn
         
         # Create S3 bucket for static hosting and thumbnails
         self.s3_bucket = self._create_s3_bucket()
@@ -54,9 +56,6 @@ class BaseStack(cdk.Stack):
         
         # Create CloudFront distribution
         self.cloudfront_distribution = self._create_cloudfront_distribution()
-        
-        # Create WAF
-        self.waf = self._create_waf()
         
         # Add name tags to all resources
         self._add_name_tags()
@@ -205,23 +204,20 @@ class BaseStack(cdk.Stack):
 
     def _create_cloudfront_distribution(self) -> cloudfront.Distribution:
         """Create CloudFront distribution."""
-        # Create Origin Access Identity
-        oai = cloudfront.OriginAccessIdentity(
+        # Create Origin Access Control (OAC) - recommended over OAI
+        oac = cloudfront.S3OriginAccessControl(
             self,
-            "OriginAccessIdentity",
-            comment=f"OAI for {self.env_name} environment",
+            "OriginAccessControl",
+            description=f"OAC for {self.env_name} environment",
         )
-        
-        # Grant CloudFront access to S3 bucket
-        self.s3_bucket.grant_read(oai)
         
         distribution = cloudfront.Distribution(
             self,
             "CloudFrontDistribution",
             default_behavior=cloudfront.BehaviorOptions(
-                origin=origins.S3Origin(
+                origin=origins.S3BucketOrigin(
                     self.s3_bucket,
-                    origin_access_identity=oai,
+                    origin_access_control_id=oac.origin_access_control_id,
                 ),
                 viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
                 cache_policy=cloudfront.CachePolicy.CACHING_OPTIMIZED,
@@ -245,44 +241,25 @@ class BaseStack(cdk.Stack):
                     response_page_path="/index.html",
                 ),
             ],
-            web_acl_id=None,  # Will be set after WAF creation
+            web_acl_id=self.web_acl_arn,
+        )
+        
+        # Grant CloudFront access to S3 bucket via bucket policy
+        self.s3_bucket.add_to_resource_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                principals=[iam.ServicePrincipal("cloudfront.amazonaws.com")],
+                actions=["s3:GetObject"],
+                resources=[f"{self.s3_bucket.bucket_arn}/*"],
+                conditions={
+                    "StringEquals": {
+                        "AWS:SourceArn": f"arn:aws:cloudfront::{self.account}:distribution/{distribution.distribution_id}"
+                    }
+                },
+            )
         )
         
         return distribution
-
-    def _create_waf(self) -> wafv2.CfnWebACL:
-        """Create WAF for basic web attack protection."""
-        waf = wafv2.CfnWebACL(
-            self,
-            "WebACL",
-            scope="CLOUDFRONT",
-            default_action=wafv2.CfnWebACL.DefaultActionProperty(allow={}),
-            rules=[
-                wafv2.CfnWebACL.RuleProperty(
-                    name="AWSManagedRulesCommonRuleSet",
-                    priority=1,
-                    override_action=wafv2.CfnWebACL.OverrideActionProperty(none={}),
-                    statement=wafv2.CfnWebACL.StatementProperty(
-                        managed_rule_group_statement=wafv2.CfnWebACL.ManagedRuleGroupStatementProperty(
-                            vendor_name="AWS",
-                            name="AWSManagedRulesCommonRuleSet",
-                        )
-                    ),
-                    visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(
-                        sampled_requests_enabled=True,
-                        cloud_watch_metrics_enabled=True,
-                        metric_name="CommonRuleSetMetric",
-                    ),
-                ),
-            ],
-            visibility_config=wafv2.CfnWebACL.VisibilityConfigProperty(
-                sampled_requests_enabled=True,
-                cloud_watch_metrics_enabled=True,
-                metric_name="WebACLMetric",
-            ),
-        )
-        
-        return waf
 
     def _add_name_tags(self) -> None:
         """Add Name tags to all resources."""
