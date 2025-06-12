@@ -15,7 +15,7 @@ from aws_cdk import (
     aws_s3 as s3,
     aws_ssm as ssm,
 )
-from constructs import Construct
+from construct import Construct
 
 
 class BaseStack(cdk.Stack):
@@ -30,7 +30,7 @@ class BaseStack(cdk.Stack):
         **kwargs: Any,
     ) -> None:
         """Initialize the base stack.
-        
+
         Args:
             scope: The scope in which to define this construct
             construct_id: The scoped construct ID
@@ -41,7 +41,7 @@ class BaseStack(cdk.Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         self.env_name = environment
-        
+
         # Get WebACL ARN from SSM Parameter if not provided directly
         if web_acl_arn is None:
             self.web_acl_arn = ssm.StringParameter.value_for_string_parameter(
@@ -50,22 +50,22 @@ class BaseStack(cdk.Stack):
             )
         else:
             self.web_acl_arn = web_acl_arn
-        
+
         # Create S3 bucket for static hosting and thumbnails
         self.s3_bucket = self._create_s3_bucket()
-        
+
         # Create DynamoDB table for archive metadata
         self.dynamodb_table = self._create_dynamodb_table()
-        
+
         # Create Lambda function for FastAPI
         self.lambda_function = self._create_lambda_function()
-        
+
         # Create API Gateway
         self.api_gateway = self._create_api_gateway()
-        
+
         # Create CloudFront distribution
         self.cloudfront_distribution = self._create_cloudfront_distribution()
-        
+
         # Add name tags to all resources
         self._add_name_tags()
 
@@ -86,9 +86,11 @@ class BaseStack(cdk.Stack):
                     noncurrent_version_expiration=cdk.Duration.days(30),
                 )
             ],
-            removal_policy=cdk.RemovalPolicy.RETAIN if self.env_name == "prod" else cdk.RemovalPolicy.DESTROY,
+            removal_policy=cdk.RemovalPolicy.RETAIN
+            if self.env_name == "prod"
+            else cdk.RemovalPolicy.DESTROY,
         )
-        
+
         return bucket
 
     def _create_dynamodb_table(self) -> dynamodb.Table:
@@ -106,9 +108,11 @@ class BaseStack(cdk.Stack):
                 type=dynamodb.AttributeType.STRING,
             ),
             billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
-            removal_policy=cdk.RemovalPolicy.RETAIN if self.env_name == "prod" else cdk.RemovalPolicy.DESTROY,
+            removal_policy=cdk.RemovalPolicy.RETAIN
+            if self.env_name == "prod"
+            else cdk.RemovalPolicy.DESTROY,
         )
-        
+
         # Add GSI for tag-based queries
         table.add_global_secondary_index(
             index_name="ByTag",
@@ -121,7 +125,7 @@ class BaseStack(cdk.Stack):
                 type=dynamodb.AttributeType.STRING,
             ),
         )
-        
+
         return table
 
     def _create_lambda_function(self) -> lambda_.Function:
@@ -137,7 +141,7 @@ class BaseStack(cdk.Stack):
                 ),
             ],
         )
-        
+
         # Add permissions for S3 and DynamoDB
         lambda_role.add_to_policy(
             iam.PolicyStatement(
@@ -146,7 +150,7 @@ class BaseStack(cdk.Stack):
                 resources=[f"{self.s3_bucket.bucket_arn}/*"],
             )
         )
-        
+
         lambda_role.add_to_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
@@ -163,7 +167,7 @@ class BaseStack(cdk.Stack):
                 ],
             )
         )
-        
+
         function = lambda_.Function(
             self,
             "FastAPIFunction",
@@ -179,9 +183,11 @@ class BaseStack(cdk.Stack):
                 "ENVIRONMENT": self.env_name,
             },
             tracing=lambda_.Tracing.ACTIVE,
-            log_retention=logs.RetentionDays.ONE_WEEK if self.env_name == "dev" else logs.RetentionDays.ONE_MONTH,
+            log_retention=logs.RetentionDays.ONE_WEEK
+            if self.env_name == "dev"
+            else logs.RetentionDays.ONE_MONTH,
         )
-        
+
         return function
 
     def _create_api_gateway(self) -> apigwv2.HttpApi:
@@ -196,19 +202,19 @@ class BaseStack(cdk.Stack):
                 allow_headers=["*"],
             ),
         )
-        
+
         # Add Lambda integration
         integration = apigwv2_integrations.HttpLambdaIntegration(
             "LambdaIntegration",
             self.lambda_function,
         )
-        
+
         api.add_routes(
             path="/{proxy+}",
             methods=[apigwv2.HttpMethod.ANY],
             integration=integration,
         )
-        
+
         return api
 
     def _create_cloudfront_distribution(self) -> cloudfront.Distribution:
@@ -219,7 +225,7 @@ class BaseStack(cdk.Stack):
             "OriginAccessControl",
             description=f"OAC for {self.env_name} environment",
         )
-        
+
         distribution = cloudfront.Distribution(
             self,
             "CloudFrontDistribution",
@@ -252,7 +258,7 @@ class BaseStack(cdk.Stack):
             ],
             web_acl_id=self.web_acl_arn,
         )
-        
+
         # Grant CloudFront access to S3 bucket via bucket policy
         self.s3_bucket.add_to_resource_policy(
             iam.PolicyStatement(
@@ -267,15 +273,16 @@ class BaseStack(cdk.Stack):
                 },
             )
         )
-        
+
         return distribution
 
     def _add_name_tags(self) -> None:
         """Add Name tags to all resources."""
+
         def add_name_tag_recursive(scope: Construct) -> None:
             for child in scope.node.children:
                 if isinstance(child, cdk.CfnResource):
                     cdk.Tags.of(child).add("Name", child.node.path.replace("/", "-"))
                 add_name_tag_recursive(child)
-        
+
         add_name_tag_recursive(self)

@@ -3,12 +3,12 @@
 from typing import Any, Self
 
 import aws_cdk as cdk
-from constructs import Construct
+from construct import Construct
 
-from constructs.api import ApiGatewayConstruct
-from constructs.cloudfront import CloudFrontConstruct
-from constructs.function import LambdaConstruct
-from constructs.storage import DynamoDBConstruct, S3Construct
+from construct.api import ApiGatewayConstruct
+from construct.cloudfront import CloudFrontConstruct
+from construct.function import LambdaConstruct
+from construct.storage import DynamoDBConstruct, S3Construct
 
 
 class MainStack(cdk.Stack):
@@ -22,7 +22,7 @@ class MainStack(cdk.Stack):
         **kwargs: Any,  # noqa: ANN401
     ) -> None:
         """Initialize main stack.
-        
+
         Args:
             scope: The scope in which to define this construct
             construct_id: The scoped construct ID
@@ -32,35 +32,39 @@ class MainStack(cdk.Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         self.env_name = environment
-        
+
         # Create storage components
         self.s3 = S3Construct(
             self,
             "S3",
             environment=environment,
         )
-        
+
         self.dynamodb = DynamoDBConstruct(
             self,
             "DynamoDB",
             environment=environment,
         )
-        
+
         # Create Lambda function
         self.lambda_function = LambdaConstruct(
             self,
             "Lambda",
             environment=environment,
         )
-        
+
         # Grant Lambda access to resources
         self.lambda_function.grant_dynamodb_access(self.dynamodb.table.table_arn)
         self.lambda_function.grant_s3_access(self.s3.bucket.bucket_arn)
-        
+
         # Add environment variables to Lambda
-        self.lambda_function.add_environment_variable("DYNAMODB_TABLE_NAME", self.dynamodb.table.table_name)
-        self.lambda_function.add_environment_variable("S3_BUCKET_NAME", self.s3.bucket.bucket_name)
-        
+        self.lambda_function.add_environment_variable(
+            "DYNAMODB_TABLE_NAME", self.dynamodb.table.table_name
+        )
+        self.lambda_function.add_environment_variable(
+            "S3_BUCKET_NAME", self.s3.bucket.bucket_name
+        )
+
         # Create API Gateway
         self.api = ApiGatewayConstruct(
             self,
@@ -68,7 +72,7 @@ class MainStack(cdk.Stack):
             environment=environment,
             lambda_function=self.lambda_function.function,
         )
-        
+
         # Create CloudFront distribution
         self.cloudfront = CloudFrontConstruct(
             self,

@@ -4,7 +4,7 @@ from typing import Any
 
 import aws_cdk as cdk
 from aws_cdk import aws_ssm as ssm, aws_wafv2 as wafv2
-from constructs import Construct
+from construct import Construct
 
 
 class WafStack(cdk.Stack):
@@ -18,7 +18,7 @@ class WafStack(cdk.Stack):
         **kwargs: Any,
     ) -> None:
         """Initialize the WAF stack.
-        
+
         Args:
             scope: The scope in which to define this construct
             construct_id: The scoped construct ID
@@ -28,10 +28,10 @@ class WafStack(cdk.Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         self.env_name = environment
-        
+
         # Create WAF for CloudFront
         self.web_acl = self._create_waf()
-        
+
         # Store WebACL ARN in SSM Parameter for cross-region access
         ssm.StringParameter(
             self,
@@ -40,7 +40,7 @@ class WafStack(cdk.Stack):
             string_value=self.web_acl.attr_arn,
             description=f"WebACL ARN for {self.env_name} environment",
         )
-        
+
         # Also export for same-region access (backward compatibility)
         cdk.CfnOutput(
             self,
@@ -97,8 +97,8 @@ class WafStack(cdk.Stack):
                 metric_name="WebACLMetric",
             ),
         )
-        
+
         # Add Name tag
         cdk.Tags.of(waf).add("Name", f"shirayuki-tomo-fansite-waf-{self.env_name}")
-        
+
         return waf

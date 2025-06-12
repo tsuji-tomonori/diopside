@@ -3,9 +3,9 @@
 from typing import Any, Self
 
 import aws_cdk as cdk
-from constructs import Construct
+from construct import Construct
 
-from constructs.waf import WafConstruct
+from construct.waf import WafConstruct
 
 
 class WafStack(cdk.Stack):
@@ -19,7 +19,7 @@ class WafStack(cdk.Stack):
         **kwargs: Any,  # noqa: ANN401
     ) -> None:
         """Initialize WAF stack.
-        
+
         Args:
             scope: The scope in which to define this construct
             construct_id: The scoped construct ID
@@ -29,7 +29,7 @@ class WafStack(cdk.Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         self.env_name = environment
-        
+
         # Create WAF construct
         self.waf = WafConstruct(
             self,
