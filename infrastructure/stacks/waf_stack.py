@@ -4,7 +4,7 @@ from typing import Any
 
 import aws_cdk as cdk
 from aws_cdk import aws_ssm as ssm, aws_wafv2 as wafv2
-from construct import Construct
+from constructs import Construct
 
 
 class WafStack(cdk.Stack):

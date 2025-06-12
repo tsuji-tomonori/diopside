@@ -1,1 +1,0 @@
-"""Infrastructure constructs for Shirayuki Tomo fansite."""

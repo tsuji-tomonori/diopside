@@ -3,12 +3,12 @@
 from typing import Any, Self
 
 import aws_cdk as cdk
-from construct import Construct
+from constructs import Construct
 
-from construct.api import ApiGatewayConstruct
-from construct.cloudfront import CloudFrontConstruct
-from construct.function import LambdaConstruct
-from construct.storage import DynamoDBConstruct, S3Construct
+from lib.api import ApiGatewayConstruct
+from lib.cloudfront import CloudFrontConstruct
+from lib.function import LambdaConstruct
+from lib.storage import DynamoDBConstruct, S3Construct
 
 
 class MainStack(cdk.Stack):

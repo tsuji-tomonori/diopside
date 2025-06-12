@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from construct import Construct
+from constructs import Construct
 
 from .base_stack import BaseStack
 

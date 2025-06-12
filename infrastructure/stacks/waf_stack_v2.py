@@ -3,9 +3,9 @@
 from typing import Any, Self
 
 import aws_cdk as cdk
-from construct import Construct
+from constructs import Construct
 
-from construct.waf import WafConstruct
+from lib.waf import WafConstruct
 
 
 class WafStack(cdk.Stack):

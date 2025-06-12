@@ -15,7 +15,7 @@ from aws_cdk import (
     aws_s3 as s3,
     aws_ssm as ssm,
 )
-from construct import Construct
+from constructs import Construct
 
 
 class BaseStack(cdk.Stack):
