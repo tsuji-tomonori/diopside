@@ -21,6 +21,7 @@ def main() -> None:
             account=app.node.try_get_context("account"),
             region="us-east-1",
         ),
+        cross_region_references=True,  # Enable cross-region references
         tags={
             "Project": "shirayuki-tomo-fansite",
             "Environment": "dev",
@@ -36,6 +37,7 @@ def main() -> None:
             account=app.node.try_get_context("account"),
             region="us-east-1",
         ),
+        cross_region_references=True,  # Enable cross-region references
         tags={
             "Project": "shirayuki-tomo-fansite",
             "Environment": "prod",
@@ -47,11 +49,12 @@ def main() -> None:
     dev_stack = DevStack(
         app,
         "ShirayukiTomoFansiteDevStack",
-        # WebACL ARN will be fetched from SSM Parameter automatically
+        web_acl_arn=dev_waf_stack.web_acl.attr_arn,  # Pass WebACL ARN directly
         env=cdk.Environment(
             account=app.node.try_get_context("account"),
             region="ap-northeast-1",
         ),
+        cross_region_references=True,  # Enable cross-region references
         tags={
             "Project": "shirayuki-tomo-fansite",
             "Environment": "dev",
@@ -64,11 +67,12 @@ def main() -> None:
     prod_stack = ProdStack(
         app,
         "ShirayukiTomoFansiteProdStack",
-        # WebACL ARN will be fetched from SSM Parameter automatically
+        web_acl_arn=prod_waf_stack.web_acl.attr_arn,  # Pass WebACL ARN directly
         env=cdk.Environment(
             account=app.node.try_get_context("account"),
             region="ap-northeast-1",
         ),
+        cross_region_references=True,  # Enable cross-region references
         tags={
             "Project": "shirayuki-tomo-fansite",
             "Environment": "prod",

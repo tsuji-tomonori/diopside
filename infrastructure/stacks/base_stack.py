@@ -42,13 +42,15 @@ class BaseStack(cdk.Stack):
 
         self.env_name = environment
 
-        # Get WebACL ARN from SSM Parameter if not provided directly
+        # Get WebACL ARN - use provided ARN directly for cross-region references
         if web_acl_arn is None:
+            # Fallback to SSM Parameter lookup for backward compatibility
             self.web_acl_arn = ssm.StringParameter.value_for_string_parameter(
                 self,
                 parameter_name=f"/shirayuki-tomo-fansite/{self.env_name}/waf/webacl-arn",
             )
         else:
+            # Use provided WebACL ARN directly (recommended for cross-region references)
             self.web_acl_arn = web_acl_arn
 
         # Create S3 bucket for static hosting and thumbnails

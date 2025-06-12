@@ -23,7 +23,7 @@ class WafStack(cdk.Stack):
             scope: The scope in which to define this construct
             construct_id: The scoped construct ID
             environment: Environment name (dev/prod)
-            **kwargs: Additional keyword arguments
+            **kwargs: Additional keyword arguments (including cross_region_references)
         """
         super().__init__(scope, construct_id, **kwargs)
 
