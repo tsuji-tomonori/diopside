@@ -1,0 +1,75 @@
+version: "3"
+
+env:
+  AWS_PROFILE: "default"
+
+tasks:
+  install-deps:
+    desc: "Install Lambda layer dependencies"
+    cmds:
+      - mkdir -p .layers/python
+      - uv pip install -r requirements.txt --target .layers/python --no-cache-dir --python-version 3.13
+
+  clean:
+    desc: "Clean build artifacts"
+    cmds:
+      - rm -rf .layers
+      - rm -rf cdk.out
+
+  diff:
+    desc: "Show CDK diff"
+    deps: [install-deps]
+    cmds:
+      - uv run cdk diff --all
+
+  synth:
+    desc: "Synthesize CDK templates"
+    deps: [install-deps]
+    cmds:
+      - uv run cdk synth --all
+
+  deploy:
+    desc: "Deploy all stacks"
+    deps: [install-deps]
+    cmds:
+      - uv run cdk deploy --all --require-approval never
+
+  deploy-waf:
+    desc: "Deploy WAF stack only"
+    deps: [install-deps]
+    cmds:
+      - uv run cdk deploy ShirayukiTomoFansiteDevWafStack --require-approval never
+
+  deploy-main:
+    desc: "Deploy main stack only"
+    deps: [install-deps]
+    cmds:
+      - uv run cdk deploy ShirayukiTomoFansiteDevStack --require-approval never
+
+  bootstrap:
+    desc: "Bootstrap CDK environments"
+    cmds:
+      - uv run cdk bootstrap aws://$(aws sts get-caller-identity --query Account --output text)/us-east-1
+      - uv run cdk bootstrap aws://$(aws sts get-caller-identity --query Account --output text)/ap-northeast-1
+
+  check-ssm:
+    desc: "Check SSM parameter for WebACL ARN"
+    cmds:
+      - aws ssm get-parameter --name /shirayuki-tomo-fansite/dev/waf/webacl-arn --region ap-northeast-1
+
+  destroy:
+    desc: "Destroy all stacks"
+    cmds:
+      - uv run cdk destroy --all --force
+
+  lint:
+    desc: "Run linting and type checking"
+    cmds:
+      - uv run ruff check .
+      - uv run ruff format --check .
+      - uv run mypy stacks/
+
+  test:
+    desc: "Run tests"
+    cmds:
+      - uv run pytest tests/
