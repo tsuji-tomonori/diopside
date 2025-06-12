@@ -170,19 +170,38 @@ class BaseStack(cdk.Stack):
             )
         )
 
+        # Create Lambda layer for dependencies
+        dependencies_layer = lambda_.LayerVersion(
+            self,
+            "DependenciesLayer",
+            code=lambda_.Code.from_asset(".layers"),
+            compatible_runtimes=[lambda_.Runtime.PYTHON_3_13],
+            description="FastAPI and other dependencies for the backend",
+        )
+
+        # Get AWS Lambda Powertools layer ARN for the current region
+        powertools_layer = lambda_.LayerVersion.from_layer_version_arn(
+            self,
+            "PowertoolsLayer",
+            layer_version_arn=f"arn:aws:lambda:{self.region}:017000801446:layer:AWSLambdaPowertoolsPythonV2:40",
+        )
+
         function = lambda_.Function(
             self,
             "FastAPIFunction",
             runtime=lambda_.Runtime.PYTHON_3_13,
             handler="main.handler",
             code=lambda_.Code.from_asset("../backend"),
-            memory_size=128,
+            memory_size=256,  # Increased memory for better performance
             timeout=cdk.Duration.seconds(30),
             role=lambda_role,
+            layers=[dependencies_layer, powertools_layer],
             environment={
                 "DYNAMODB_TABLE_NAME": self.dynamodb_table.table_name,
                 "S3_BUCKET_NAME": self.s3_bucket.bucket_name,
                 "ENVIRONMENT": self.env_name,
+                "POWERTOOLS_SERVICE_NAME": "shirayuki-tomo-fansite",
+                "POWERTOOLS_METRICS_NAMESPACE": "ShirayukiTomoFansite",
             },
             tracing=lambda_.Tracing.ACTIVE,
             log_retention=logs.RetentionDays.ONE_WEEK
