@@ -5,7 +5,7 @@ from typing import Any, Self
 
 import aws_cdk as cdk
 from aws_cdk import aws_iam as iam, aws_lambda as lambda_, aws_logs as logs
-from constructs import Construct
+from construct import Construct
 
 
 class LambdaConstruct(Construct):
@@ -19,7 +19,7 @@ class LambdaConstruct(Construct):
         **kwargs: Any,  # noqa: ANN401
     ) -> None:
         """Initialize Lambda construct.
-        
+
         Args:
             scope: The scope in which to define this construct
             construct_id: The scoped construct ID
@@ -29,7 +29,7 @@ class LambdaConstruct(Construct):
         super().__init__(scope, construct_id, **kwargs)
 
         self.env_name = environment
-        
+
         # Create Lambda function
         self.function = lambda_.Function(
             self,
@@ -54,7 +54,9 @@ class LambdaConstruct(Construct):
             self,
             "LogGroup",
             log_group_name=f"/aws/lambda/{self.function.function_name}",
-            retention=logs.RetentionDays.ONE_MONTH if environment == "dev" else logs.RetentionDays.THREE_MONTHS,
+            retention=logs.RetentionDays.ONE_MONTH
+            if environment == "dev"
+            else logs.RetentionDays.THREE_MONTHS,
             removal_policy=cdk.RemovalPolicy.DESTROY,
         )
 
@@ -68,7 +70,7 @@ class LambdaConstruct(Construct):
 
     def add_environment_variable(self: Self, key: str, value: str) -> None:
         """Add environment variable to the Lambda function.
-        
+
         Args:
             key: Environment variable key
             value: Environment variable value
@@ -77,7 +79,7 @@ class LambdaConstruct(Construct):
 
     def grant_dynamodb_access(self: Self, table_arn: str) -> None:
         """Grant DynamoDB access to the Lambda function.
-        
+
         Args:
             table_arn: DynamoDB table ARN
         """
@@ -99,7 +101,7 @@ class LambdaConstruct(Construct):
 
     def grant_s3_access(self: Self, bucket_arn: str) -> None:
         """Grant S3 access to the Lambda function.
-        
+
         Args:
             bucket_arn: S3 bucket ARN
         """

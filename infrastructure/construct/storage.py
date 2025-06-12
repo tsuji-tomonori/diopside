@@ -4,7 +4,7 @@ from typing import Any, Self
 
 import aws_cdk as cdk
 from aws_cdk import aws_dynamodb as dynamodb, aws_s3 as s3
-from constructs import Construct
+from construct import Construct
 
 
 class S3Construct(Construct):
@@ -18,7 +18,7 @@ class S3Construct(Construct):
         **kwargs: Any,  # noqa: ANN401
     ) -> None:
         """Initialize S3 construct.
-        
+
         Args:
             scope: The scope in which to define this construct
             construct_id: The scoped construct ID
@@ -28,7 +28,7 @@ class S3Construct(Construct):
         super().__init__(scope, construct_id, **kwargs)
 
         self.env_name = environment
-        
+
         # Create S3 bucket
         self.bucket = s3.Bucket(
             self,
@@ -44,7 +44,9 @@ class S3Construct(Construct):
                     noncurrent_version_expiration=cdk.Duration.days(30),
                 ),
             ],
-            removal_policy=cdk.RemovalPolicy.DESTROY if environment == "dev" else cdk.RemovalPolicy.RETAIN,
+            removal_policy=cdk.RemovalPolicy.DESTROY
+            if environment == "dev"
+            else cdk.RemovalPolicy.RETAIN,
             auto_delete_objects=environment == "dev",
         )
 
@@ -68,7 +70,7 @@ class DynamoDBConstruct(Construct):
         **kwargs: Any,  # noqa: ANN401
     ) -> None:
         """Initialize DynamoDB construct.
-        
+
         Args:
             scope: The scope in which to define this construct
             construct_id: The scoped construct ID
@@ -78,7 +80,7 @@ class DynamoDBConstruct(Construct):
         super().__init__(scope, construct_id, **kwargs)
 
         self.env_name = environment
-        
+
         # Create DynamoDB table
         self.table = dynamodb.Table(
             self,
@@ -89,12 +91,14 @@ class DynamoDBConstruct(Construct):
                 type=dynamodb.AttributeType.STRING,
             ),
             sort_key=dynamodb.Attribute(
-                name="SK", 
+                name="SK",
                 type=dynamodb.AttributeType.STRING,
             ),
             billing_mode=dynamodb.BillingMode.ON_DEMAND,
             point_in_time_recovery=environment == "prod",
-            removal_policy=cdk.RemovalPolicy.DESTROY if environment == "dev" else cdk.RemovalPolicy.RETAIN,
+            removal_policy=cdk.RemovalPolicy.DESTROY
+            if environment == "dev"
+            else cdk.RemovalPolicy.RETAIN,
         )
 
         # Add GSI for tag-based queries

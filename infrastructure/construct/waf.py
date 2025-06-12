@@ -4,7 +4,7 @@ from typing import Any, Self
 
 import aws_cdk as cdk
 from aws_cdk import aws_ssm as ssm, aws_wafv2 as wafv2
-from constructs import Construct
+from construct import Construct
 
 
 class WafConstruct(Construct):
@@ -18,7 +18,7 @@ class WafConstruct(Construct):
         **kwargs: Any,  # noqa: ANN401
     ) -> None:
         """Initialize WAF construct.
-        
+
         Args:
             scope: The scope in which to define this construct
             construct_id: The scoped construct ID
@@ -28,10 +28,10 @@ class WafConstruct(Construct):
         super().__init__(scope, construct_id, **kwargs)
 
         self.env_name = environment
-        
+
         # Create WAF WebACL
         self.web_acl = self._create_web_acl()
-        
+
         # Store WebACL ARN in SSM Parameter for cross-region access
         self.ssm_parameter = ssm.StringParameter(
             self,
@@ -40,7 +40,7 @@ class WafConstruct(Construct):
             string_value=self.web_acl.attr_arn,
             description=f"WebACL ARN for {self.env_name} environment",
         )
-        
+
         # Output WebACL ARN
         cdk.CfnOutput(
             self,
@@ -98,8 +98,8 @@ class WafConstruct(Construct):
                 metric_name="WebACLMetric",
             ),
         )
-        
+
         # Add Name tag
         cdk.Tags.of(web_acl).add("Name", f"shirayuki-tomo-fansite-waf-{self.env_name}")
-        
+
         return web_acl

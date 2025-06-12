@@ -3,9 +3,12 @@
 from typing import Any, Self
 
 import aws_cdk as cdk
-from aws_cdk import aws_apigatewayv2 as apigwv2, aws_apigatewayv2_integrations as apigwv2_integrations
+from aws_cdk import (
+    aws_apigatewayv2 as apigwv2,
+    aws_apigatewayv2_integrations as apigwv2_integrations,
+)
 from aws_cdk import aws_lambda as lambda_, aws_logs as logs
-from constructs import Construct
+from construct import Construct
 
 
 class ApiGatewayConstruct(Construct):
@@ -20,7 +23,7 @@ class ApiGatewayConstruct(Construct):
         **kwargs: Any,  # noqa: ANN401
     ) -> None:
         """Initialize API Gateway construct.
-        
+
         Args:
             scope: The scope in which to define this construct
             construct_id: The scoped construct ID
@@ -31,7 +34,7 @@ class ApiGatewayConstruct(Construct):
         super().__init__(scope, construct_id, **kwargs)
 
         self.env_name = environment
-        
+
         # Create HTTP API
         self.api = apigwv2.HttpApi(
             self,
@@ -70,7 +73,9 @@ class ApiGatewayConstruct(Construct):
             self,
             "AccessLogGroup",
             log_group_name=f"/aws/apigateway/shirayuki-tomo-fansite-api-{self.env_name}",
-            retention=logs.RetentionDays.ONE_MONTH if environment == "dev" else logs.RetentionDays.THREE_MONTHS,
+            retention=logs.RetentionDays.ONE_MONTH
+            if environment == "dev"
+            else logs.RetentionDays.THREE_MONTHS,
             removal_policy=cdk.RemovalPolicy.DESTROY,
         )
 

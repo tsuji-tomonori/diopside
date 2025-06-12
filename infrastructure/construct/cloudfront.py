@@ -5,7 +5,7 @@ from typing import Any, Self
 import aws_cdk as cdk
 from aws_cdk import aws_cloudfront as cloudfront, aws_cloudfront_origins as origins
 from aws_cdk import aws_s3 as s3, aws_ssm as ssm
-from constructs import Construct
+from construct import Construct
 
 
 class CloudFrontConstruct(Construct):
@@ -21,7 +21,7 @@ class CloudFrontConstruct(Construct):
         **kwargs: Any,  # noqa: ANN401
     ) -> None:
         """Initialize CloudFront construct.
-        
+
         Args:
             scope: The scope in which to define this construct
             construct_id: The scoped construct ID
@@ -33,7 +33,7 @@ class CloudFrontConstruct(Construct):
         super().__init__(scope, construct_id, **kwargs)
 
         self.env_name = environment
-        
+
         # Get WebACL ARN from SSM Parameter
         web_acl_arn = ssm.StringParameter.value_for_string_parameter(
             self,
