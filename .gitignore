@@ -6,6 +6,10 @@ __pycache__/
 # C extensions
 *.so
 
+# Lambda layers (temporary build artifacts)
+infrastructure/.layers/
+.layers/
+
 # Distribution / packaging
 .Python
 build/

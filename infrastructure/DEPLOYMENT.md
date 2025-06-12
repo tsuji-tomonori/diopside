@@ -21,7 +21,11 @@ npm install -g aws-cdk
 
 ### Install Python dependencies
 ```bash
-uv sync
+# Backend dependencies
+cd backend && uv sync
+
+# Infrastructure dependencies  
+cd infrastructure && uv sync
 ```
 
 ## Bootstrap (First Time Setup)
@@ -75,14 +79,24 @@ task clean
 
 ### Run Tests and Linting
 ```bash
+# Infrastructure
 task lint
 task test
+
+# Backend
+task backend:lint
+task backend:test
+```
+
+### Run Backend Development Server
+```bash
+task backend:dev
 ```
 
 ## Architecture
 
 ### Lambda Layers
-- **Dependencies Layer**: Contains FastAPI, Pydantic, Mangum, and other Python dependencies
+- **Dependencies Layer**: Contains FastAPI, Pydantic, Mangum, and other Python dependencies (from backend/pyproject.toml)
 - **AWS Powertools Layer**: AWS-managed layer for observability and utilities
 
 ### Cross-Region Setup
@@ -93,15 +107,23 @@ task test
 - ✅ Lambda layers to reduce deployment size
 - ✅ Cross-region references with SSM parameters
 - ✅ AWS Powertools for observability
-- ✅ Automated dependency management
+- ✅ Automated dependency management from backend uv configuration
 - ✅ Infrastructure as Code with CDK
+- ✅ Centralized task management with Taskfile
+
+## Dependency Management
+
+Dependencies are managed through the backend's `pyproject.toml` file:
+- Production dependencies are automatically extracted using `uv export`
+- Lambda layers are built from these dependencies
+- No separate requirements.txt file needed for infrastructure
 
 ## Troubleshooting
 
 ### Lambda Size Issues
 If you encounter "Unzipped size must be smaller than 262144000 bytes" error:
 1. Ensure dependencies are in layers: `task install-deps`
-2. Check that `.layers/` directory exists and contains dependencies
+2. Check that `infrastructure/.layers/` directory exists and contains dependencies
 3. Verify Lambda function uses layers instead of bundled dependencies
 
 ### Cross-Region Reference Issues
@@ -129,11 +151,16 @@ Set these in your shell or `.env` file:
 ## File Structure
 
 ```
-infrastructure/
-├── Taskfile.yaml           # Task definitions
-├── requirements.txt        # Lambda layer dependencies
-├── .layers/               # Generated Lambda layers (gitignored)
-├── stacks/                # CDK stack definitions
-├── app.py                 # CDK app entry point
-└── cdk.out/              # Generated CloudFormation templates
+/
+├── Taskfile.yaml              # Task definitions (moved from infrastructure/)
+├── install-task.sh            # Task installation script
+├── backend/
+│   └── pyproject.toml         # Source of truth for dependencies
+└── infrastructure/
+    ├── .layers/               # Generated Lambda layers (gitignored)
+    │   ├── requirements.txt   # Auto-generated from backend
+    │   └── python/           # Installed dependencies
+    ├── stacks/               # CDK stack definitions
+    ├── app.py                # CDK app entry point
+    └── cdk.out/             # Generated CloudFormation templates
 ```
