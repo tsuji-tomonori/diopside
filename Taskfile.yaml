@@ -24,53 +24,33 @@ tasks:
     deps: [install-deps]
     dir: infrastructure
     cmds:
-      - uv run cdk diff --all
+      - uv run cdk diff ShirayukiTomoFansiteStack
 
   synth:
     desc: "Synthesize CDK templates"
     deps: [install-deps]
     dir: infrastructure
     cmds:
-      - uv run cdk synth --all
+      - uv run cdk synth ShirayukiTomoFansiteStack
 
   deploy:
-    desc: "Deploy all stacks"
+    desc: "Deploy main stack"
     deps: [install-deps]
     dir: infrastructure
     cmds:
-      - uv run cdk deploy --all --require-approval never
-
-  deploy-waf:
-    desc: "Deploy WAF stack only"
-    deps: [install-deps]
-    dir: infrastructure
-    cmds:
-      - uv run cdk deploy ShirayukiTomoFansiteDevWafStack --require-approval never
-
-  deploy-main:
-    desc: "Deploy main stack only"
-    deps: [install-deps]
-    dir: infrastructure
-    cmds:
-      - uv run cdk deploy ShirayukiTomoFansiteDevStack --require-approval never
+      - uv run cdk deploy ShirayukiTomoFansiteStack --require-approval never
 
   bootstrap:
-    desc: "Bootstrap CDK environments"
+    desc: "Bootstrap CDK environment"
     dir: infrastructure
     cmds:
-      - uv run cdk bootstrap aws://$(aws sts get-caller-identity --query Account --output text)/us-east-1
       - uv run cdk bootstrap aws://$(aws sts get-caller-identity --query Account --output text)/ap-northeast-1
 
-  check-ssm:
-    desc: "Check SSM parameter for WebACL ARN"
-    cmds:
-      - aws ssm get-parameter --name /shirayuki-tomo-fansite/dev/waf/webacl-arn --region ap-northeast-1
-
   destroy:
-    desc: "Destroy all stacks"
+    desc: "Destroy main stack"
     dir: infrastructure
     cmds:
-      - uv run cdk destroy --all --force
+      - uv run cdk destroy ShirayukiTomoFansiteStack --force
 
   lint:
     desc: "Run linting and type checking"
@@ -106,3 +86,50 @@ tasks:
     dir: backend
     cmds:
       - uv run python main.py
+
+  # Frontend tasks
+  frontend:install:
+    desc: "Install frontend dependencies"
+    dir: frontend
+    cmds:
+      - npm install
+
+  frontend:dev:
+    desc: "Run frontend development server"
+    dir: frontend
+    cmds:
+      - npm run dev
+
+  frontend:build:
+    desc: "Build frontend for production"
+    dir: frontend
+    cmds:
+      - npm run build
+      - npm run export
+
+  frontend:test:
+    desc: "Run frontend tests"
+    dir: frontend
+    cmds:
+      - npm test
+
+  # Full deployment workflow
+  deploy-all:
+    desc: "Deploy infrastructure and frontend"
+    cmds:
+      - task: deploy
+      - task: frontend:build
+      - |
+        BUCKET_NAME=$(aws cloudformation describe-stacks \
+          --stack-name ShirayukiTomoFansiteStack \
+          --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' \
+          --output text)
+        aws s3 sync frontend/out/ s3://$BUCKET_NAME/ --delete
+      - |
+        DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
+          --stack-name ShirayukiTomoFansiteStack \
+          --query 'Stacks[0].Outputs[?OutputKey==`CloudFrontDistributionId`].OutputValue' \
+          --output text)
+        aws cloudfront create-invalidation \
+          --distribution-id $DISTRIBUTION_ID \
+          --paths "/*"

@@ -1,83 +1,127 @@
-"""Main application stack using construct pattern."""
+"""Main stack for the Shirayuki Tomo fansite infrastructure."""
 
-from typing import Any, Self
+from typing import Any
 
 import aws_cdk as cdk
 from constructs import Construct
 
-from lib.api import ApiGatewayConstruct
-from lib.cloudfront import CloudFrontConstruct
-from lib.function import LambdaConstruct
-from lib.storage import DynamoDBConstruct, S3Construct
+from .constructs import (
+    ApiConstruct,
+    CdnConstruct,
+    LambdaConstruct,
+    StorageConstruct,
+    WafConstruct,
+)
 
 
 class MainStack(cdk.Stack):
-    """Main application stack containing all infrastructure components."""
+    """Main stack containing all infrastructure components."""
 
     def __init__(
-        self: Self,
+        self,
         scope: Construct,
         construct_id: str,
-        environment: str,
-        **kwargs: Any,  # noqa: ANN401
+        **kwargs: Any,
     ) -> None:
-        """Initialize main stack.
+        """Initialize the main stack.
 
         Args:
             scope: The scope in which to define this construct
             construct_id: The scoped construct ID
-            environment: Environment name (dev/prod)
             **kwargs: Additional keyword arguments
         """
         super().__init__(scope, construct_id, **kwargs)
 
-        self.env_name = environment
+        # Environment is determined from stack name
+        environment = "prod" if "prod" in construct_id.lower() else "dev"
 
-        # Create storage components
-        self.s3 = S3Construct(
+        # Create WAF WebACL (must be in us-east-1 for CloudFront)
+        waf_construct = WafConstruct(
             self,
-            "S3",
+            "Waf",
             environment=environment,
         )
 
-        self.dynamodb = DynamoDBConstruct(
+        # Create storage resources
+        storage_construct = StorageConstruct(
             self,
-            "DynamoDB",
+            "Storage",
             environment=environment,
         )
 
-        # Create Lambda function
-        self.lambda_function = LambdaConstruct(
+        # Create Lambda function with layers
+        lambda_construct = LambdaConstruct(
             self,
             "Lambda",
             environment=environment,
-        )
-
-        # Grant Lambda access to resources
-        self.lambda_function.grant_dynamodb_access(self.dynamodb.table.table_arn)
-        self.lambda_function.grant_s3_access(self.s3.bucket.bucket_arn)
-
-        # Add environment variables to Lambda
-        self.lambda_function.add_environment_variable(
-            "DYNAMODB_TABLE_NAME", self.dynamodb.table.table_name
-        )
-        self.lambda_function.add_environment_variable(
-            "S3_BUCKET_NAME", self.s3.bucket.bucket_name
+            s3_bucket=storage_construct.s3_bucket,
+            dynamodb_table=storage_construct.dynamodb_table,
         )
 
         # Create API Gateway
-        self.api = ApiGatewayConstruct(
+        api_construct = ApiConstruct(
             self,
             "Api",
             environment=environment,
-            lambda_function=self.lambda_function.function,
+            lambda_function=lambda_construct.lambda_function,
         )
 
         # Create CloudFront distribution
-        self.cloudfront = CloudFrontConstruct(
+        cdn_construct = CdnConstruct(
             self,
-            "CloudFront",
-            environment=environment,
-            s3_bucket=self.s3.bucket,
-            api_endpoint=self.api.api.api_endpoint,
+            "Cdn",
+            s3_bucket=storage_construct.s3_bucket,
+            api_gateway=api_construct.api_gateway,
+            web_acl_arn=waf_construct.web_acl.attr_arn,
         )
+
+        # Store references for outputs
+        self.s3_bucket = storage_construct.s3_bucket
+        self.dynamodb_table = storage_construct.dynamodb_table
+        self.lambda_function = lambda_construct.lambda_function
+        self.api_gateway = api_construct.api_gateway
+        self.cloudfront_distribution = cdn_construct.distribution
+        self.web_acl = waf_construct.web_acl
+
+        # Add outputs
+        cdk.CfnOutput(
+            self,
+            "S3BucketName",
+            value=self.s3_bucket.bucket_name,
+            description="S3 bucket name for static hosting",
+        )
+
+        cdk.CfnOutput(
+            self,
+            "ApiEndpoint",
+            value=self.api_gateway.url or "",
+            description="API Gateway endpoint URL",
+        )
+
+        cdk.CfnOutput(
+            self,
+            "CloudFrontDistributionId",
+            value=self.cloudfront_distribution.distribution_id,
+            description="CloudFront distribution ID",
+        )
+
+        cdk.CfnOutput(
+            self,
+            "CloudFrontDomainName",
+            value=self.cloudfront_distribution.distribution_domain_name,
+            description="CloudFront distribution domain name",
+        )
+
+        # Add name tags to all resources
+        self._add_name_tags()
+
+    def _add_name_tags(self) -> None:
+        """Add Name tags to all resources."""
+
+        def add_name_tag_recursive(scope: Construct) -> None:
+            for child in scope.node.children:
+                if isinstance(child, cdk.CfnResource):
+                    cdk.Tags.of(child).add("Name", child.node.path.replace("/", "-"))
+                add_name_tag_recursive(child)
+
+        add_name_tag_recursive(self)
