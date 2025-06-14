@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from mangum import Mangum
 
 from app.routers import videos_router
 
@@ -37,6 +38,10 @@ async def root() -> dict[str, str]:
 async def health_check() -> dict[str, str]:
     """Health check endpoint."""
     return {"status": "healthy", "service": "diopside-backend"}
+
+
+# Lambda handler
+handler = Mangum(app)
 
 
 if __name__ == "__main__":
