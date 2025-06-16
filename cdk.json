@@ -1,0 +1,4 @@
+{
+    "app": "python package/infra/app.py",
+    "requireApproval": "never"
+}

@@ -1,0 +1,15 @@
+language: typescript
+type: application
+tasks:
+  install:
+    command: npm install
+    inputs:
+      - 'package*'
+  build:
+    command: npm run build
+    deps:
+      - ~:install
+    inputs:
+      - '@group(web-src)'
+    outputs:
+      - 'out/**'

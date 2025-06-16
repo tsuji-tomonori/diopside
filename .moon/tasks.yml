@@ -1,0 +1,23 @@
+fileGroups:
+  api-src:
+    - package/api/app
+  api-test:
+    - package/api/test
+  web-src:
+    - package/web/public/**
+    - package/web/src/**
+    - package/web/eslint.config.*
+    - package/web/next.config.*
+    - package/web/package*
+    - package/web/postcss.config.*
+    - package/web/tsconfig.json
+  web-test:
+    - package/web/test
+  infra-src:
+    - package/infra/src
+  infra-test:
+    - package/infra/test
+  layer:
+    - .layers/python
+  python-config:
+    - pyproject.toml

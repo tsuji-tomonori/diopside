@@ -1,0 +1,30 @@
+language: python
+type: application
+tasks:
+  layer:
+    command: uv pip install --group layer --target .layers/python --no-cache-dir
+    inputs:
+      - '@group(python-config)'
+    outputs:
+      - '@group(layer)'
+  diff:
+    command: uv run --group infra cdk diff
+    deps:
+      - '~:layer'
+      - 'web:build'
+    inputs:
+      - '@group(api-src)'
+      - '@group(layer)'
+      - '@group(web-src)'
+      - '@group(infra-src)'
+  deploy:
+    command: uv run --group infra cdk deploy --all
+    deps:
+      - '~:layer'
+      - 'web:build'
+      - '~:diff'
+    inputs:
+      - '@group(api-src)'
+      - '@group(layer)'
+      - '@group(web-src)'
+      - '@group(infra-src)'
