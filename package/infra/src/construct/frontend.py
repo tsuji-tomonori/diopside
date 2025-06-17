@@ -33,7 +33,24 @@ class FrontEndStack(Stack):
             default_root_object="index.html",
             default_behavior=cloudfront.BehaviorOptions(
                 origin=origins.S3BucketOrigin.with_origin_access_control(source.bucket),
+                viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                cache_policy=cloudfront.CachePolicy.CACHING_OPTIMIZED,
             ),
+            error_responses=[
+                # SPA routing support: 404/403 errors should return index.html
+                cloudfront.ErrorResponse(
+                    http_status=404,
+                    response_http_status=200,
+                    response_page_path="/index.html",
+                    ttl=cdk.Duration.minutes(5),
+                ),
+                cloudfront.ErrorResponse(
+                    http_status=403,
+                    response_http_status=200,
+                    response_page_path="/index.html",
+                    ttl=cdk.Duration.minutes(5),
+                ),
+            ],
             # web_acl_id=web_acl_arn,
         )
 
