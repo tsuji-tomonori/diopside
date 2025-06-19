@@ -2,7 +2,6 @@ import aws_cdk as cdk
 from src.model.env import Env
 from src.model.project import Project
 from src.stack.app_stack import AppStack
-from src.stack.waf_stack import FrontEndWafStack
 
 
 def add_name_tag(scope):  # noqa: ANN001, ANN201
@@ -20,19 +19,8 @@ app = cdk.App()
 project = Project()
 env = Env.DEV
 
-
-front_waf = FrontEndWafStack(
-    scope=app,
-    construct_id=f"{env.camel_case}{project.camel_case_name}FrontWaf",
-    project=project,
-    environment=env,
-    env=cdk.Environment(
-        region="us-east-1",
-    ),
-    # cross_region_references=True,
-)
-
-AppStack(
+# 統合アプリケーションスタック
+app_stack = AppStack(
     scope=app,
     construct_id=f"{env.camel_case}{project.camel_case_name}App",
     project=project,
@@ -40,9 +28,6 @@ AppStack(
     env=cdk.Environment(
         region="ap-northeast-1",
     ),
-    # web_acl_arn=front_waf.waf.web_acl_arn,
-    # web_acl_arn="arn:aws:wafv2:us-east-1:123456789012:global/webacl/diopside-front-waf/12345678-1234-1234-1234-123456789012",
-    # cross_region_references=True,
 )
 
 cdk.Tags.of(app).add("Project", project.name)
