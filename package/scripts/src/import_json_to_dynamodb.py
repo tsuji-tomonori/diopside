@@ -66,9 +66,9 @@ class CloudFormationHelper:
 class JsonToDynamoDBImporter:
     """JSONファイルからDynamoDBへのインポートを行うクラス"""
 
-    def __init__(self, table_name: str):
+    def __init__(self, table_name: str, region: str = "ap-northeast-1"):
         self.table_name = table_name
-        self.dynamodb = boto3.resource("dynamodb")
+        self.dynamodb = boto3.resource("dynamodb", region_name=region)
         self.table = self.dynamodb.Table(table_name)
 
     def scan_json_files(self, metadata_dir: str = "metadata") -> List[str]:
@@ -245,7 +245,7 @@ def main():
         print(f"Processing directory: {args.metadata_dir}")
 
         # インポート実行
-        importer = JsonToDynamoDBImporter(table_name)
+        importer = JsonToDynamoDBImporter(table_name=table_name, region=args.region)
         results = importer.import_all_files(args.metadata_dir)
 
         print("\nIMPORT COMPLETED")
