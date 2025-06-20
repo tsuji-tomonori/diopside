@@ -2,12 +2,34 @@
 
 import json
 import random
+from decimal import Decimal
 from typing import Any, cast
 
 import boto3
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from models import TagNode, Video
+
+
+class DecimalEncoder(json.JSONEncoder):
+    """Custom JSON encoder to handle DynamoDB Decimal objects."""
+
+    def default(self, obj: Any) -> Any:
+        """Convert Decimal objects to int or float for JSON serialization.
+
+        Args:
+            obj: Object to encode
+
+        Returns:
+            JSON serializable object
+        """
+        if isinstance(obj, Decimal):
+            # Convert to int if it's a whole number, otherwise to float
+            if obj % 1 == 0:
+                return int(obj)
+            else:
+                return float(obj)
+        return super().default(obj)
 
 
 class DynamoDBService:
@@ -78,7 +100,9 @@ class DynamoDBService:
 
             next_last_key = None
             if "LastEvaluatedKey" in response:
-                next_last_key = json.dumps(response["LastEvaluatedKey"])
+                next_last_key = json.dumps(
+                    response["LastEvaluatedKey"], cls=DecimalEncoder
+                )
 
             return videos, next_last_key
 
