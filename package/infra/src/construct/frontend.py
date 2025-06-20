@@ -30,6 +30,26 @@ class FrontEndConstruct(Construct):
             environment=environment,
         )
 
+        # フォント用のキャッシュポリシーを作成
+        font_cache_policy = cloudfront.CachePolicy(
+            self,
+            "FontCachePolicy",
+            cache_policy_name=f"diopside-{environment.value}-font-cache-policy",
+            comment="Cache policy for font files with CORS headers",
+            default_ttl=cdk.Duration.days(365),
+            max_ttl=cdk.Duration.days(365),
+            min_ttl=cdk.Duration.seconds(0),
+            cookie_behavior=cloudfront.CacheCookieBehavior.none(),
+            header_behavior=cloudfront.CacheHeaderBehavior.allow_list(
+                "Access-Control-Request-Headers",
+                "Access-Control-Request-Method",
+                "Origin",
+            ),
+            query_string_behavior=cloudfront.CacheQueryStringBehavior.none(),
+            enable_accept_encoding_gzip=True,
+            enable_accept_encoding_brotli=True,
+        )
+
         self.static_distribution = cloudfront.Distribution(
             self,
             "Distribution",
@@ -41,6 +61,50 @@ class FrontEndConstruct(Construct):
                 viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
                 cache_policy=cloudfront.CachePolicy.CACHING_OPTIMIZED,
             ),
+            additional_behaviors={
+                # フォントファイル用の専用ビヘイビア
+                "*.woff": cloudfront.BehaviorOptions(
+                    origin=origins.S3BucketOrigin.with_origin_access_control(
+                        self.source.bucket
+                    ),
+                    viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                    cache_policy=font_cache_policy,
+                    compress=True,
+                ),
+                "*.woff2": cloudfront.BehaviorOptions(
+                    origin=origins.S3BucketOrigin.with_origin_access_control(
+                        self.source.bucket
+                    ),
+                    viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                    cache_policy=font_cache_policy,
+                    compress=True,
+                ),
+                "*.ttf": cloudfront.BehaviorOptions(
+                    origin=origins.S3BucketOrigin.with_origin_access_control(
+                        self.source.bucket
+                    ),
+                    viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                    cache_policy=font_cache_policy,
+                    compress=True,
+                ),
+                "*.otf": cloudfront.BehaviorOptions(
+                    origin=origins.S3BucketOrigin.with_origin_access_control(
+                        self.source.bucket
+                    ),
+                    viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                    cache_policy=font_cache_policy,
+                    compress=True,
+                ),
+                # Next.jsの静的ファイル用
+                "_next/static/*": cloudfront.BehaviorOptions(
+                    origin=origins.S3BucketOrigin.with_origin_access_control(
+                        self.source.bucket
+                    ),
+                    viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                    cache_policy=font_cache_policy,
+                    compress=True,
+                ),
+            },
             error_responses=[
                 # SPA routing support: 404/403 errors should return index.html
                 cloudfront.ErrorResponse(
