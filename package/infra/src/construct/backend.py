@@ -50,6 +50,11 @@ class BackendApiConstruct(Construct):
             self.archive_metadata.table.table_name,
         )
 
+        assert self.server.function.role is not None, (
+            "Lambda function role must be defined"
+        )
+        self.archive_metadata.table.grant_read_data(self.server.function)
+
         self.waf = WafConstruct(
             self,
             "ApiWaf",
