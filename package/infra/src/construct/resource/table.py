@@ -58,6 +58,19 @@ class DynamoDBConstruct(Construct):
             ),
         )
 
+        # Add GSI1 for year-based queries
+        self.table.add_global_secondary_index(
+            index_name="GSI1",
+            partition_key=dynamodb.Attribute(
+                name="year",
+                type=dynamodb.AttributeType.NUMBER,
+            ),
+            sort_key=dynamodb.Attribute(
+                name="SK",
+                type=dynamodb.AttributeType.STRING,
+            ),
+        )
+
         # Output table name
         cdk.CfnOutput(
             self,
