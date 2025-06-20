@@ -5,10 +5,13 @@ import { MainLayout } from '@/components/layout/MainLayout'
 import { YearSelector } from '@/components/year/YearSelector'
 import { VideoGrid } from '@/components/video/VideoGrid'
 import { ErrorMessage } from '@/components/common/ErrorMessage'
+import { Loading } from '@/components/common/Loading'
 import { useVideosByYear } from '@/hooks/useApi'
+import { useConfig } from '@/contexts/ConfigContext'
 import type { Video } from '@/types/api'
 
 export default function Home() {
+  const { isLoading: configLoading, error: configError } = useConfig()
   const currentYear = new Date().getFullYear()
   const [selectedYear, setSelectedYear] = useState(currentYear)
   const [allVideos, setAllVideos] = useState<Video[]>([])
@@ -45,6 +48,36 @@ export default function Home() {
 
   const handleRetry = () => {
     mutate()
+  }
+
+  // Show loading while config is loading
+  if (configLoading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <Loading />
+        </div>
+      </MainLayout>
+    )
+  }
+
+  // Show error if config failed to load
+  if (configError) {
+    return (
+      <MainLayout>
+        <div className="space-y-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-purple-800 dark:text-purple-200 mb-4">
+              白雪巴アーカイブ
+            </h1>
+            <ErrorMessage
+              message="設定の読み込みに失敗しました。ページを再読み込みしてください。"
+              onRetry={() => window.location.reload()}
+            />
+          </div>
+        </div>
+      </MainLayout>
+    )
   }
 
   return (

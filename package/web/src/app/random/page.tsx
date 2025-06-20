@@ -6,11 +6,13 @@ import { VideoCard } from '@/components/video/VideoCard'
 import { Loading } from '@/components/common/Loading'
 import { ErrorMessage } from '@/components/common/ErrorMessage'
 import { useRandomVideos } from '@/hooks/useApi'
+import { useConfig } from '@/contexts/ConfigContext'
 import { Card, CardBody, Button, Select, SelectItem, SelectProps } from '@heroui/react'
 import { ArrowPathIcon, PlayIcon } from '@heroicons/react/24/outline'
 import type { Video } from '@/types/api'
 
 export default function RandomPage() {
+  const { isLoading: configLoading, error: configError } = useConfig()
   const [count, setCount] = useState(1)
   const [history, setHistory] = useState<Video[]>([])
 
@@ -42,6 +44,36 @@ export default function RandomPage() {
 
   const handleRetry = () => {
     mutate()
+  }
+
+  // Show loading while config is loading
+  if (configLoading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <Loading />
+        </div>
+      </MainLayout>
+    )
+  }
+
+  // Show error if config failed to load
+  if (configError) {
+    return (
+      <MainLayout>
+        <div className="space-y-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-purple-800 dark:text-purple-200 mb-4">
+              ランダム動画
+            </h1>
+            <ErrorMessage
+              message="設定の読み込みに失敗しました。ページを再読み込みしてください。"
+              onRetry={() => window.location.reload()}
+            />
+          </div>
+        </div>
+      </MainLayout>
+    )
   }
 
   return (

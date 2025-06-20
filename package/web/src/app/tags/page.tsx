@@ -7,13 +7,15 @@ import { VideoGrid } from '@/components/video/VideoGrid'
 import { Loading } from '@/components/common/Loading'
 import { ErrorMessage } from '@/components/common/ErrorMessage'
 import { useTagTree, useVideosByTag } from '@/hooks/useApi'
+import { useConfig } from '@/contexts/ConfigContext'
 import { Breadcrumbs, BreadcrumbItem, Card, CardBody } from '@heroui/react'
 import { TagIcon } from '@heroicons/react/24/outline'
 import type { Video } from '@/types/api'
 
 export default function TagsPage() {
+  const { isLoading: configLoading, error: configError } = useConfig()
   const [selectedTagPath, setSelectedTagPath] = useState<string>('')
-  
+
   const { data: tagData, error: tagError, isLoading: tagLoading } = useTagTree()
   const { data: videoData, error: videoError, isLoading: videoLoading } = useVideosByTag(selectedTagPath)
 
@@ -37,6 +39,36 @@ export default function TagsPage() {
     setSelectedTagPath(newPath)
   }
 
+  // Show loading while config is loading
+  if (configLoading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <Loading />
+        </div>
+      </MainLayout>
+    )
+  }
+
+  // Show error if config failed to load
+  if (configError) {
+    return (
+      <MainLayout>
+        <div className="space-y-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-purple-800 dark:text-purple-200 mb-4">
+              タグ検索
+            </h1>
+            <ErrorMessage
+              message="設定の読み込みに失敗しました。ページを再読み込みしてください。"
+              onRetry={() => window.location.reload()}
+            />
+          </div>
+        </div>
+      </MainLayout>
+    )
+  }
+
   return (
     <MainLayout>
       <div className="space-y-8">
@@ -58,9 +90,9 @@ export default function TagsPage() {
                 onRetry={() => window.location.reload()}
               />
             )}
-            
+
             {tagLoading && <Loading label="タグを読み込み中..." />}
-            
+
             {tagData && (
               <TagTree
                 nodes={tagData.tree}
@@ -79,7 +111,7 @@ export default function TagsPage() {
                       <TagIcon className="w-5 h-5 text-purple-500" />
                       <span className="font-semibold">選択中のタグ:</span>
                     </div>
-                    
+
                     <Breadcrumbs>
                       {getBreadcrumbs().map((tag, index) => (
                         <BreadcrumbItem

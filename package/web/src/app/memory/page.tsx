@@ -6,10 +6,12 @@ import { MemoryGame } from '@/components/memory/MemoryGame'
 import { Loading } from '@/components/common/Loading'
 import { ErrorMessage } from '@/components/common/ErrorMessage'
 import { useMemoryThumbnails } from '@/hooks/useApi'
+import { useConfig } from '@/contexts/ConfigContext'
 import { Card, CardBody, Button, Select, SelectItem, SelectProps } from '@heroui/react'
 import { PuzzlePieceIcon, TrophyIcon } from '@heroicons/react/24/outline'
 
 export default function MemoryPage() {
+  const { isLoading: configLoading, error: configError } = useConfig()
   const [pairs, setPairs] = useState(8)
   const [gameStats, setGameStats] = useState<{ moves: number; time: number } | null>(null)
 
@@ -39,6 +41,36 @@ export default function MemoryPage() {
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
+
+  // Show loading while config is loading
+  if (configLoading) {
+    return (
+      <MainLayout>
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <Loading />
+        </div>
+      </MainLayout>
+    )
+  }
+
+  // Show error if config failed to load
+  if (configError) {
+    return (
+      <MainLayout>
+        <div className="space-y-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-purple-800 dark:text-purple-200 mb-4">
+              神経衰弱ゲーム
+            </h1>
+            <ErrorMessage
+              message="設定の読み込みに失敗しました。ページを再読み込みしてください。"
+              onRetry={() => window.location.reload()}
+            />
+          </div>
+        </div>
+      </MainLayout>
+    )
   }
 
   return (
