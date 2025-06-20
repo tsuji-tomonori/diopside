@@ -28,3 +28,5 @@ tasks:
       - '@group(layer)'
       - '@group(web-src)'
       - '@group(infra-src)'
+  put:
+    command: uv run package/scripts/src/import_json_to_dynamodb.py
