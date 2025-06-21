@@ -12,45 +12,55 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-### Task Runner (Primary)
-This project uses Task (Taskfile.yaml) as the primary build tool:
+### Moon Task Runner (Primary)
+This project uses Moon as the primary build tool with a monorepo structure:
 
 ```bash
 # Infrastructure
-task bootstrap              # Bootstrap CDK environment
-task deploy                # Deploy infrastructure only
-task deploy-all            # Deploy everything (infra + frontend)
-task diff                  # Show CDK infrastructure diff
-task synth                 # Synthesize CDK templates
-task destroy               # Destroy infrastructure
+moon run :bootstrap        # Bootstrap CDK environment
+moon run :deploy           # Deploy infrastructure only
+moon run :deploy-all       # Deploy everything (infra + frontend with S3 sync)
+moon run :diff             # Show CDK infrastructure diff
+moon run :synth            # Synthesize CDK templates
+moon run :destroy          # Destroy infrastructure
 
 # Development & Testing
-task lint                  # Run infrastructure linting (ruff + mypy)
-task test                  # Run infrastructure tests
-task backend:lint          # Run backend linting
-task backend:test          # Run backend tests
-task backend:dev           # Run backend development server
-task frontend:install      # Install frontend dependencies
-task frontend:dev          # Run frontend development server (port 50970)
-task frontend:build        # Build frontend for production
-task frontend:test         # Run frontend tests
+moon run :lint             # Run linting for all affected projects
+moon run :test             # Run tests for all affected projects
+moon run api:lint          # Run backend linting
+moon run api:test          # Run backend tests
+moon run api:dev           # Run backend development server
+moon run web:install       # Install frontend dependencies
+moon run web:dev           # Run frontend development server (port 50970)
+moon run web:build         # Build frontend for production
+moon run web:test          # Run frontend tests
+
+# Project-specific commands
+moon run infra:bootstrap   # Bootstrap CDK environment
+moon run infra:synth       # Synthesize CDK templates
+moon run infra:diff        # Show CDK diff
+moon run infra:deploy      # Deploy infrastructure
+moon run web:test-e2e      # Run E2E tests
+moon run web:test-coverage # Run tests with coverage
 
 # Utilities
-task clean                 # Clean build artifacts
-task install-deps         # Install Lambda layer dependencies
+moon run :clean            # Clean all build artifacts
+moon run :layer            # Build Lambda layer dependencies
+moon run :import-data      # Import data to DynamoDB
 ```
 
-### Moon Task Runner (Alternative)
-The project also supports Moon task runner:
-
+### Development Shortcuts
 ```bash
-moon run web:build         # Build frontend
-moon run :deploy           # Deploy infrastructure + frontend
-moon run :diff             # Show deployment diff
-moon run :put              # Import data to DynamoDB
+# Start development servers
+moon run :dev-api          # Start API development server
+moon run :dev-web          # Start web development server
+
+# Run all tests
+moon run :test             # Run tests for all affected projects
+moon run :lint             # Run linting for all affected projects
 ```
 
-### Direct Commands
+### Direct Commands (Alternative)
 
 Frontend (package/web/):
 ```bash
@@ -70,7 +80,7 @@ uv run ruff check .        # Linting
 uv run mypy app/           # Type checking
 ```
 
-Infrastructure:
+Infrastructure (package/infra/):
 ```bash
 uv run cdk diff            # Show changes
 uv run cdk deploy --all    # Deploy all stacks
@@ -168,15 +178,15 @@ package/
 
 ## Deployment Notes
 
-- Use `task deploy-all` for complete deployment (infrastructure + frontend sync)
-- Frontend builds to `package/web/out/` and syncs to S3
-- CloudFront invalidation is triggered automatically
+- Use `moon run :deploy-all` for complete deployment (infrastructure + frontend sync to S3)
+- Frontend builds to `package/web/out/` and syncs to S3 automatically
+- CloudFront invalidation is triggered automatically in deploy-all
 - Environment variables are set via CDK context
 - The stack name is "ShirayukiTomoFansiteStack" in all environments
 
 ## Data Import
 
-Use `task put` or `moon run :put` to import video metadata from JSON files into DynamoDB. The import script is located at `package/scripts/src/import_json_to_dynamodb.py`.
+Use `moon run :import-data` to import video metadata from JSON files into DynamoDB. The import script is located at `package/scripts/src/import_json_to_dynamodb.py`.
 
 ## Documentation Management
 
@@ -301,3 +311,27 @@ Documents commonly found in projects but **not currently needed**:
 - `CODE_OF_CONDUCT.md` - Not needed for personal project
 - `SUPPORT.md` - Information included in README.md
 - API client SDKs - Auto-generated from FastAPI OpenAPI spec
+
+## Important Notes
+
+### Task Migration to Moon
+This project has been **fully migrated from Task to Moon**. The previous `Taskfile.yaml` has been removed.
+
+**Key changes:**
+- All `task` commands replaced with `moon run` commands
+- Monorepo structure with individual `moon.yml` files in each package
+- Improved dependency management and caching via Moon
+- Better cross-project dependency handling
+
+**Do not** create or reference `Taskfile.yaml` - use Moon configurations only.
+
+### Moon Project Structure
+```
+moon.yml                    # Root project with integration tasks
+package/api/moon.yml         # Backend API tasks
+package/web/moon.yml         # Frontend tasks
+package/infra/moon.yml       # Infrastructure tasks
+package/scripts/moon.yml     # Utility scripts
+```
+
+All documentation has been updated to reflect Moon usage. When adding new tasks or commands, use Moon syntax and update this guidance accordingly.

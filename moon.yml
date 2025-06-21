@@ -1,32 +1,69 @@
 language: python
 type: application
 tasks:
+  # Aggregated tasks that call individual package tasks
+  bootstrap:
+    deps:
+      - 'infra:bootstrap'
+    local: true
+
   layer:
-    command: uv pip install --group layer --target .layers/python --no-cache-dir
-    inputs:
-      - '@group(python-config)'
-    outputs:
-      - '@group(layer)'
+    deps:
+      - 'infra:layer'
+
   diff:
-    command: uv run --group infra cdk diff
     deps:
-      - '~:layer'
-      - 'web:build'
-    inputs:
-      - '@group(api-src)'
-      - '@group(layer)'
-      - '@group(web-src)'
-      - '@group(infra-src)'
+      - 'infra:diff'
+
   deploy:
-    command: uv run --group infra cdk deploy --all
     deps:
-      - '~:layer'
+      - 'infra:deploy'
+
+  deploy-all:
+    deps:
+      - 'infra:deploy'
       - 'web:build'
-      - '~:diff'
-    inputs:
-      - '@group(api-src)'
-      - '@group(layer)'
-      - '@group(web-src)'
-      - '@group(infra-src)'
-  put:
-    command: uv run package/scripts/src/import_json_to_dynamodb.py
+
+  synth:
+    deps:
+      - 'infra:synth'
+
+  destroy:
+    deps:
+      - 'infra:destroy'
+    local: true
+
+  import-data:
+    deps:
+      - 'scripts:import-data'
+    local: true
+
+  # Development commands
+  dev-api:
+    deps:
+      - 'api:dev'
+    local: true
+
+  dev-web:
+    deps:
+      - 'web:dev'
+    local: true
+
+  # Testing and linting
+  lint:
+    deps:
+      - 'api:lint'
+      - 'infra:lint'
+      - 'scripts:lint'
+
+  test:
+    deps:
+      - 'api:test'
+      - 'infra:test'
+      - 'scripts:test'
+      - 'web:test'
+
+  clean:
+    deps:
+      - 'infra:clean'
+    local: true

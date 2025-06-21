@@ -7,6 +7,7 @@ projects:
   api: 'package/api'
   web: 'package/web'
   infra: 'package/infra'
+  scripts: 'package/scripts'
   root: '.'
 vcs:
   manager: 'git'

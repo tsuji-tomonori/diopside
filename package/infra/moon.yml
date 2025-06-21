@@ -1,0 +1,103 @@
+language: python
+type: application
+tasks:
+  install:
+    command: uv sync
+    options:
+      cache: false
+
+  layer:
+    command: uv pip install --group layer --target ../../.layers/python --no-cache-dir
+    deps:
+      - ~:install
+    inputs:
+      - '@group(python-config)'
+
+  bootstrap:
+    command: uv run --group infra cdk bootstrap aws://$(aws sts get-caller-identity --query Account --output text)/ap-northeast-1
+    deps:
+      - ~:install
+    local: true
+
+  synth:
+    command: uv run --group infra cdk synth
+    deps:
+      - ~:install
+      - ~:layer
+    inputs:
+      - 'src/**/*.py'
+      - 'app.py'
+      - '@group(layer)'
+
+  diff:
+    command: uv run --group infra cdk diff
+    deps:
+      - ~:install
+      - ~:layer
+      - 'web:build'
+    inputs:
+      - 'src/**/*.py'
+      - 'app.py'
+      - '@group(layer)'
+
+  deploy:
+    command: uv run --group infra cdk deploy --all --require-approval never
+    deps:
+      - ~:install
+      - ~:layer
+      - 'web:build'
+    inputs:
+      - 'src/**/*.py'
+      - 'app.py'
+      - '@group(layer)'
+
+  destroy:
+    command: uv run --group infra cdk destroy --force
+    deps:
+      - ~:install
+    local: true
+
+  lint:
+    command: uv run --group dev ruff check .
+    deps:
+      - ~:install
+    inputs:
+      - 'src/**/*.py'
+      - 'app.py'
+      - 'tests/**/*.py'
+
+  format:
+    command: uv run --group dev ruff format .
+    deps:
+      - ~:install
+    inputs:
+      - 'src/**/*.py'
+      - 'app.py'
+      - 'tests/**/*.py'
+
+  typecheck:
+    command: uv run --group dev mypy --explicit-package-bases src/
+    deps:
+      - ~:install
+    inputs:
+      - 'src/**/*.py'
+
+  test:
+    command: uv run --group dev pytest tests/
+    deps:
+      - ~:install
+    inputs:
+      - 'src/**/*.py'
+      - 'tests/**/*.py'
+
+  check:
+    description: "Run lint, type checking, and tests"
+    # 依存タスクとして lint, typecheck, test を指定
+    deps:
+      - ~:lint
+      - ~:typecheck
+      - ~:test
+
+  clean:
+    command: rm -rf ../../.layers/python
+    local: true

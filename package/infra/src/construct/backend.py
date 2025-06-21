@@ -1,6 +1,7 @@
 from typing import Any, Self
 
 from constructs import Construct
+
 from src.construct.resource.function import LambdaConstruct
 from src.construct.resource.rest_api import ApigwConstruct
 from src.construct.resource.table import DynamoDBConstruct

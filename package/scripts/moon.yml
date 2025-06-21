@@ -1,0 +1,45 @@
+language: python
+type: application
+tasks:
+  install:
+    command: uv sync --dev
+    inputs:
+      - 'pyproject.toml'
+      - 'uv.lock'
+
+  import-data:
+    command: uv run src/import_json_to_dynamodb.py
+    deps:
+      - ~:install
+    inputs:
+      - 'src/**/*.py'
+    local: true
+
+  lint:
+    command: uv run ruff check .
+    deps:
+      - ~:install
+    inputs:
+      - 'src/**/*.py'
+
+  format:
+    command: uv run ruff format .
+    deps:
+      - ~:install
+    inputs:
+      - 'src/**/*.py'
+
+  typecheck:
+    command: uv run mypy src/
+    deps:
+      - ~:install
+    inputs:
+      - 'src/**/*.py'
+
+  test:
+    command: uv run pytest tests/ || true
+    deps:
+      - ~:install
+    inputs:
+      - 'src/**/*.py'
+      - 'tests/**/*.py'

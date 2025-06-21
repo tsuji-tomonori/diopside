@@ -55,17 +55,17 @@ sudo apt install git
 git --version
 ```
 
-#### 5. Task (タスクランナー)
+#### 5. Moon (モノレポタスクランナー)
 ```bash
-# Task のインストール
-sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
+# Moon のインストール
+curl -fsSL https://moonrepo.dev/install/moon.sh | bash
 
 # パスを通す
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 
 # バージョン確認
-task --version
+moon --version
 ```
 
 ## プロジェクトのセットアップ
@@ -79,6 +79,16 @@ cd diopside
 ```
 
 ### 2. 依存関係のインストール
+
+#### 全プロジェクト
+```bash
+# Moon を使用して全プロジェクトの依存関係をインストール
+moon run web:install
+moon run api:install
+moon run infra:install
+```
+
+または個別に：
 
 #### フロントエンド
 ```bash
@@ -136,6 +146,12 @@ cd ../..
 ### 1. バックエンドの起動
 
 ```bash
+# FastAPI 開発サーバーを起動（Moon使用）
+moon run :dev-api
+```
+
+または直接：
+```bash
 # FastAPI 開発サーバーを起動
 cd package/api
 uv run python main.py
@@ -149,6 +165,12 @@ APIサーバーは http://localhost:8000 で起動します。
 
 ### 2. フロントエンドの起動
 
+```bash
+# Next.js 開発サーバーを起動（Moon使用）
+moon run :dev-web
+```
+
+または直接：
 ```bash
 # Next.js 開発サーバーを起動（別ターミナル）
 cd package/web

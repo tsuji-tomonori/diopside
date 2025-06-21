@@ -1,46 +1,25 @@
 [project]
-name = "diopside"
+name = "diopside-api"
 version = "0.1.0"
-description = "shirayuki-tomoe fan site"
-readme = "README.md"
+description = "FastAPI backend for Diopside"
 requires-python = ">=3.13"
-
-[dependency-groups]
-dev = [
-    "boto3-stubs[dynamodb]>=1.38.36",
-    "mypy>=1.16.0",
-    "pytest>=8.4.0",
-    "pytest-asyncio>=1.0.0",
-    "pytest-cov>=6.2.1",
-    "ruff>=0.11.13",
-]
-infra = [
-    "aws-cdk-lib==2.201.0",
-    "boto3>=1.38.36",
-    "constructs==10.4.2",
-]
-layer = [
+dependencies = [
     "aws-lambda-powertools>=3.14.0",
     "fastapi>=0.115.12",
     "mangum>=0.19.0",
     "pydantic>=2.11.7",
+    "boto3>=1.38.36",
 ]
 
-[tool.uv]
-default-groups = [
-    "dev",
-    "infra",
-    "layer",
+[dependency-groups]
+dev = [
+    "boto3-stubs[dynamodb]>=1.38.36",
+    "pytest>=8.4.0",
+    "pytest-asyncio>=1.0.0",
+    "pytest-cov>=6.2.1",
+    "ruff>=0.11.13",
+    "mypy>=1.16.0",
 ]
-
-[tool.uv.workspace]
-members = ["package/*"]
-exclude = ["package/web"]
-
-[tool.uv.sources]
-diopside-api = { workspace = true }
-diopside-infra = { workspace = true }
-diopside-scripts = { workspace = true }
 
 [tool.ruff]
 target-version = "py313"
@@ -70,13 +49,9 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
-exclude = "cdk.out"
 
 [tool.pytest.ini_options]
-testpaths = [
-    "packages/api/tests",
-    "packages/infra/tests",
-]
+testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]

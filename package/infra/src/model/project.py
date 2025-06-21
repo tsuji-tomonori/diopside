@@ -15,12 +15,13 @@ class Project:
     def _load_metadata(self) -> dict[str, Any]:
         """Load project metadata from pyproject.toml."""
         with open(PYPROJECT_PATH, "rb") as f:
-            return tomllib.load(f)["project"]
+            data = tomllib.load(f)
+            return data["project"]  # type: ignore[no-any-return]
 
     @property
     def name(self) -> str:
         """Get the project name."""
-        return self._metadata["name"]
+        return str(self._metadata["name"])
 
     @property
     def camel_case_name(self) -> str:
@@ -35,7 +36,7 @@ class Project:
     @property
     def semantic_version(self) -> str:
         """Get the project semantic version."""
-        return self._metadata["version"]
+        return str(self._metadata["version"])
 
     @property
     def major_version(self) -> str:

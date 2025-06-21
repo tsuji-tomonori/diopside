@@ -1,0 +1,56 @@
+language: python
+type: application
+tasks:
+  install:
+    command: uv sync
+    options:
+      cache: false
+
+  dev:
+    command: uv run python main.py
+    deps:
+      - ~:install
+    local: true
+    options:
+      cache: false
+
+  lint:
+    command: uv run --group dev ruff check .
+    deps:
+      - ~:install
+    inputs:
+      - 'app/**/*.py'
+      - 'tests/**/*.py'
+      - 'main.py'
+
+  format:
+    command: uv run --group dev ruff format .
+    deps:
+      - ~:install
+    inputs:
+      - 'app/**/*.py'
+      - 'tests/**/*.py'
+      - 'main.py'
+
+  typecheck:
+    command: uv run --group dev infra mypy app/
+    deps:
+      - ~:install
+    inputs:
+      - 'app/**/*.py'
+
+  test:
+    command: uv run --group dev infra pytest tests/
+    deps:
+      - ~:install
+    inputs:
+      - 'app/**/*.py'
+      - 'tests/**/*.py'
+
+  check:
+    description: "Run lint, type checking, and tests"
+    # 依存タスクとして lint, typecheck, test を指定
+    deps:
+      - ~:lint
+      - ~:typecheck
+      - ~:test

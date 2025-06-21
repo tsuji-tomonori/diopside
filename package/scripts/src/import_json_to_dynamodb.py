@@ -22,7 +22,7 @@ class CloudFormationHelper:
     """CloudFormationスタックからリソース情報を取得するヘルパークラス"""
 
     def __init__(self, region: str = "ap-northeast-1"):
-        self.cf_client = boto3.client("cloudformation", region_name=region)
+        self.cf_client = boto3.client("cloudformation", region_name=region)  # type: ignore
 
     def get_stack_outputs(self, stack_name: str) -> Dict[str, str]:
         """CloudFormationスタックのOutputsを取得"""

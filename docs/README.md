@@ -57,7 +57,7 @@
 - Python 3.13
 - uv (Python パッケージマネージャー)
 - AWS CLI (デプロイ時)
-- Task (タスクランナー)
+- Moon (モノレポタスクランナー)
 
 ### ローカル開発環境のセットアップ
 
@@ -67,33 +67,28 @@ git clone https://github.com/tsuji-tomonori/diopside.git
 cd diopside
 ```
 
-2. **Task のインストール**
+2. **Moon のインストール**
 ```bash
-./install-task.sh
+curl -fsSL https://moonrepo.dev/install/moon.sh | bash
 ```
 
 3. **依存関係のインストール**
 ```bash
-# バックエンド
-cd backend && uv sync && cd ..
-
-# フロントエンド  
-cd frontend && npm install && cd ..
-
-# インフラストラクチャ
-cd infrastructure && uv sync && cd ..
+# 全プロジェクトの依存関係をインストール
+moon run api:install
+moon run web:install
+moon run infra:install
 ```
 
 4. **フロントエンドの起動**
 ```bash
-cd frontend
-npm run dev
+moon run :dev-web
 ```
-→ http://localhost:3000 でアクセス可能
+→ http://localhost:50970 でアクセス可能
 
 5. **バックエンドの起動**
 ```bash
-task backend:dev
+moon run :dev-api
 ```
 → http://localhost:8000 でAPI利用可能
 
@@ -101,27 +96,29 @@ task backend:dev
 
 ### インフラストラクチャ
 ```bash
-task bootstrap       # AWS環境初期化
-task deploy          # 全スタックデプロイ
-task deploy-waf      # WAFスタックのみ
-task deploy-main     # メインスタックのみ
-task diff            # 変更差分確認
-task synth           # CloudFormationテンプレート生成
-task clean           # ビルド成果物削除
-task destroy         # 全リソース削除
+moon run :bootstrap  # AWS環境初期化
+moon run :deploy     # インフラデプロイ
+moon run :deploy-all # 全スタックデプロイ + フロントエンド同期
+moon run :diff       # 変更差分確認
+moon run :synth      # CloudFormationテンプレート生成
+moon run :clean      # ビルド成果物削除
+moon run :destroy    # 全リソース削除
 ```
 
-### バックエンド開発
+### 開発・テスト
 ```bash
-task backend:dev     # 開発サーバー起動
-task backend:test    # テスト実行
-task backend:lint    # リンター実行
+moon run :dev-api    # バックエンド開発サーバー起動
+moon run :dev-web    # フロントエンド開発サーバー起動
+moon run :test       # 全プロジェクトテスト実行
+moon run :lint       # 全プロジェクトリンター実行
 ```
 
-### インフラのテスト
+### プロジェクト別
 ```bash
-task test            # インフラテスト実行
-task lint            # インフラリンター実行
+moon run api:test    # APIテスト実行
+moon run api:lint    # APIリンター実行
+moon run web:test    # Webテスト実行
+moon run web:test-e2e # E2Eテスト実行
 ```
 
 ## 📁 プロジェクト構成

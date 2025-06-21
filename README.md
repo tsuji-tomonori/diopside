@@ -23,7 +23,7 @@ Diopsideは、白雪巴VTuberの配信アーカイブを管理・閲覧するた
 - Node.js 20.x以上
 - Python 3.13以上
 - AWS CLI
-- Task (タスクランナー)
+- Moon (モノレポタスクランナー)
 
 ### セットアップ
 
@@ -33,22 +33,22 @@ git clone https://github.com/tsuji-tomonori/diopside.git
 cd diopside
 
 # 依存関係のインストール
-task frontend:install
-cd infrastructure && uv sync --dev
-cd ../backend && uv sync --dev
+moon run web:install
+moon run api:install
+moon run infra:install
 
 # AWS CDKのインストール
 npm install -g aws-cdk
 
 # CDK Bootstrap
-task bootstrap
+moon run :bootstrap
 ```
 
 ### デプロイ
 
 ```bash
 # インフラとアプリケーションの一括デプロイ
-task deploy-all
+moon run :deploy-all
 ```
 
 ## 📚 ドキュメント
@@ -65,40 +65,40 @@ task deploy-all
 
 ```bash
 # フロントエンド開発サーバー
-task frontend:dev
+moon run web:dev
 
 # バックエンド開発サーバー
-task backend:dev
+moon run api:dev
 ```
 
 ### テストの実行
 
 ```bash
 # 全テストの実行
-task test
-task backend:test
-task frontend:test
+moon run :test
+moon run api:test
+moon run web:test
 
 # コード品質チェック
-task lint
-task backend:lint
+moon run :lint
+moon run api:lint
 ```
 
 ## 📋 利用可能なコマンド
 
 ### インフラ関連
-- `task deploy` - インフラのデプロイ
-- `task synth` - CDKテンプレートの合成
-- `task diff` - 変更差分の確認
-- `task destroy` - スタックの削除
+- `moon run :deploy` - インフラのデプロイ
+- `moon run :synth` - CDKテンプレートの合成
+- `moon run :diff` - 変更差分の確認
+- `moon run :destroy` - スタックの削除
 
 ### 開発・テスト
-- `task lint` - コード品質チェック
-- `task test` - テストの実行
-- `task clean` - ビルド成果物のクリーンアップ
+- `moon run :lint` - コード品質チェック
+- `moon run :test` - テストの実行
+- `moon run :clean` - ビルド成果物のクリーンアップ
 
 ### 統合デプロイ
-- `task deploy-all` - インフラ・フロントエンド・バックエンドの一括デプロイ
+- `moon run :deploy-all` - インフラ・フロントエンド・バックエンドの一括デプロイ
 
 ## 🤝 コントリビューション
 

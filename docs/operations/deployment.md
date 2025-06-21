@@ -48,7 +48,7 @@
 - **uv** (Python パッケージマネージャー)
 - **npm** 10.x以上
 - **AWS CDK CLI** 2.149.0以上 (`npm install -g aws-cdk`)
-- **Task** (タスクランナー)
+- **Moon** (モノレポタスクランナー)
 
 ### AWS アカウント設定
 ```bash
@@ -76,39 +76,35 @@ export AWS_DEFAULT_REGION=ap-northeast-1
 
 ```bash
 # 依存関係のインストール
-task frontend:install
-
-# インフラ依存関係のインストール
-cd infrastructure && uv sync --dev
-
-# バックエンド依存関係のインストール
-cd ../backend && uv sync --dev
+moon run web:install
+moon run api:install
+moon run infra:install
 
 # AWS CDK のインストール（グローバル）
 npm install -g aws-cdk
 
 # CDK Bootstrap（初回のみ）
-task bootstrap
+moon run :bootstrap
 ```
 
 ### 2. デプロイ
 
 ```bash
 # インフラのみデプロイ
-task deploy
+moon run :deploy
 
-# フロントエンド・バックエンド含む全体デプロイ
-task deploy-all
+# フロントエンド・バックエンド含む全体デプロイ（S3同期とCloudFront無効化含む）
+moon run :deploy-all
 ```
 
 ### 3. デプロイ前の確認
 
 ```bash
 # 合成（テンプレート生成）のみ実行
-task synth
+moon run :synth
 
 # 差分確認
-task diff
+moon run :diff
 
 # スタック情報の確認
 aws cloudformation describe-stacks --stack-name ShirayukiTomoFansiteStack
@@ -123,8 +119,8 @@ aws cloudformation list-stack-resources --stack-name ShirayukiTomoFansiteStack
 
 ```bash
 # バックエンドのテスト・品質チェック
-task backend:lint
-task backend:test
+moon run api:lint
+moon run api:test
 ```
 
 ### 2. Lambda関数のデプロイ
@@ -133,7 +129,7 @@ Lambda関数は CDK デプロイ時に自動的にパッケージ化・デプロ
 
 ```bash
 # インフラデプロイ時に自動実行
-task deploy
+moon run :deploy
 ```
 
 ### 3. 環境変数の設定
@@ -165,7 +161,7 @@ curl https://your-api-endpoint.execute-api.ap-northeast-1.amazonaws.com/
 
 ```bash
 # フロントエンドの依存関係インストール
-task frontend:install
+moon run web:install
 
 # 環境変数の設定
 cd frontend
@@ -180,10 +176,10 @@ EOF
 
 ```bash
 # フロントエンドのビルドとデプロイ
-task frontend:build
+moon run web:build
 
 # または全体デプロイ
-task deploy-all
+moon run :deploy-all
 ```
 
 ## 🔄 CI/CD パイプライン
@@ -319,10 +315,10 @@ aws cloudfront create-invalidation \
 
 ```bash
 # 前のバージョンへのロールバック
-task deploy --previous-parameters
+moon run :deploy --previous-parameters
 
 # 特定のスタックの削除（緊急時）
-task destroy
+moon run :destroy
 ```
 
 ### アプリケーションのロールバック
@@ -341,7 +337,7 @@ aws cloudfront create-invalidation --distribution-id your-distribution-id --path
 
 ```bash
 # スタックの削除
-task destroy
+moon run :destroy
 ```
 
 **注意**: 削除前にデータのバックアップを取ることを強く推奨します。
@@ -386,28 +382,28 @@ task destroy
 
 ---
 
-## 🔧 Taskfile コマンド一覧
+## 🔧 Moon コマンド一覧
 
 ### インフラ関連
-- `task deploy` - インフラのデプロイ
-- `task synth` - CDKテンプレートの合成
-- `task diff` - 変更差分の確認
-- `task destroy` - スタックの削除
-- `task bootstrap` - CDK環境の初期化
-- `task clean` - ビルド成果物のクリーンアップ
+- `moon run :deploy` - インフラのデプロイ
+- `moon run :synth` - CDKテンプレートの合成
+- `moon run :diff` - 変更差分の確認
+- `moon run :destroy` - スタックの削除
+- `moon run :bootstrap` - CDK環境の初期化
+- `moon run :clean` - ビルド成果物のクリーンアップ
 
 ### 開発・テスト
-- `task lint` - インフラコードの品質チェック
-- `task test` - インフラテストの実行
-- `task backend:lint` - バックエンドコードの品質チェック
-- `task backend:test` - バックエンドテストの実行
-- `task backend:dev` - バックエンド開発サーバーの起動
+- `moon run :lint` - 全プロジェクトコードの品質チェック
+- `moon run :test` - 全プロジェクトテストの実行
+- `moon run api:lint` - バックエンドコードの品質チェック
+- `moon run api:test` - バックエンドテストの実行
+- `moon run api:dev` - バックエンド開発サーバーの起動
 
 ### フロントエンド
-- `task frontend:install` - フロントエンド依存関係のインストール
-- `task frontend:build` - フロントエンドのビルド
-- `task frontend:dev` - フロントエンド開発サーバーの起動
-- `task frontend:test` - フロントエンドテストの実行
+- `moon run web:install` - フロントエンド依存関係のインストール
+- `moon run web:build` - フロントエンドのビルド
+- `moon run web:dev` - フロントエンド開発サーバーの起動
+- `moon run web:test` - フロントエンドテストの実行
 
 ### 統合デプロイ
-- `task deploy-all` - インフラ・フロントエンド・バックエンドの一括デプロイ
+- `moon run :deploy-all` - インフラ・フロントエンド・バックエンドの一括デプロイ
