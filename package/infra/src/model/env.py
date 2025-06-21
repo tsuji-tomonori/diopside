@@ -1,6 +1,7 @@
 import enum
 
 import aws_cdk as cdk
+from aws_cdk import RemovalPolicy
 from aws_cdk import aws_lambda as lambda_
 from aws_cdk import aws_logs
 
@@ -27,12 +28,12 @@ class Env(enum.Enum):
         """Check if the environment is production."""
         return self == Env.PRD or self == Env.STG
 
-    def removal_policy(self) -> cdk.RemovalPolicy:
+    def removal_policy(self) -> RemovalPolicy:
         """Get the removal policy for the environment."""
         return (
-            cdk.RemovalPolicy.RETAIN
+            RemovalPolicy.RETAIN
             if self.is_production()
-            else cdk.RemovalPolicy.DESTROY
+            else RemovalPolicy.DESTROY
         )
 
     def retention_days(self) -> aws_logs.RetentionDays:

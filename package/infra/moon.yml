@@ -86,6 +86,7 @@ tasks:
     command: uv run --group dev pytest tests/
     deps:
       - ~:install
+      - ~:layer
     inputs:
       - 'src/**/*.py'
       - 'tests/**/*.py'

@@ -10,6 +10,11 @@ dependencies = [
 ]
 
 [dependency-groups]
+infra = [
+    "aws-cdk-lib==2.201.0",
+    "boto3>=1.38.36",
+    "constructs==10.4.2",
+]
 dev = [
     "pytest>=8.4.0",
     "pytest-cov>=6.2.1",
