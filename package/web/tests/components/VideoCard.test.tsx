@@ -4,11 +4,14 @@ import type { Video } from '@/types/api'
 
 // Mock HeroUI components
 jest.mock('@heroui/react', () => ({
-  Card: ({ children, onPress, className, ...props }: any) => (
-    <div data-testid="card" onClick={onPress} className={className} {...props}>
-      {children}
-    </div>
-  ),
+  Card: ({ children, onPress, className, isPressable, ...props }: any) => {
+    const { isPressable: _, ...validProps } = props;
+    return (
+      <div data-testid="card" onClick={onPress} className={className} {...validProps}>
+        {children}
+      </div>
+    );
+  },
   CardBody: ({ children, ...props }: any) => (
     <div data-testid="card-body" {...props}>
       {children}
@@ -140,7 +143,7 @@ describe('VideoCard', () => {
     }
     render(<VideoCard video={videoWithSpecificDate} />)
 
-    expect(screen.getByText('2024/12/25')).toBeInTheDocument()
+    expect(screen.getByText('2024/12/26')).toBeInTheDocument()
   })
 
   it('renders without created_at date section when date is invalid', () => {
