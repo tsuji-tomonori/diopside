@@ -33,14 +33,14 @@ tasks:
       - 'main.py'
 
   typecheck:
-    command: uv run --group dev infra mypy app/
+    command: uv run --group dev mypy app/
     deps:
       - ~:install
     inputs:
       - 'app/**/*.py'
 
   test:
-    command: uv run --group dev infra pytest tests/
+    command: uv run --group dev pytest tests/
     deps:
       - ~:install
     inputs:
