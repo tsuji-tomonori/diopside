@@ -4,12 +4,80 @@ tasks:
   install:
     command: npm install
     inputs:
-      - 'package*'
+      - 'package*.json'
+
+  dev:
+    command: npm run dev
+    deps:
+      - ~:install
+    local: true
+    options:
+      cache: false
+
   build:
     command: npm run build
     deps:
       - ~:install
     inputs:
-      - '@group(web-src)'
+      - 'src/**/*'
+      - 'public/**/*'
+      - 'next.config.ts'
+      - 'tsconfig.json'
+      - 'tailwind.config.ts'
+      - 'postcss.config.mjs'
     outputs:
       - 'out/**'
+
+  lint:
+    command: npm run lint
+    deps:
+      - ~:install
+    inputs:
+      - 'src/**/*.{ts,tsx}'
+      - 'eslint.config.mjs'
+
+  test:
+    command: npm test
+    deps:
+      - ~:install
+    inputs:
+      - 'src/**/*.{ts,tsx}'
+      - 'tests/**/*.{ts,tsx}'
+      - 'jest.config.js'
+      - 'jest.setup.js'
+
+  test-watch:
+    command: npm run test:watch
+    deps:
+      - ~:install
+    local: true
+    options:
+      cache: false
+
+  test-coverage:
+    command: npm run test:coverage
+    deps:
+      - ~:install
+    inputs:
+      - 'src/**/*.{ts,tsx}'
+      - 'tests/**/*.{ts,tsx}'
+    outputs:
+      - 'coverage/**'
+
+  test-e2e:
+    command: npm run test:e2e
+    deps:
+      - ~:install
+      - ~:build
+    inputs:
+      - 'tests/e2e/**/*.ts'
+      - 'playwright.config.ts'
+
+  test-e2e-ui:
+    command: npm run test:e2e:ui
+    deps:
+      - ~:install
+      - ~:build
+    local: true
+    options:
+      cache: false
