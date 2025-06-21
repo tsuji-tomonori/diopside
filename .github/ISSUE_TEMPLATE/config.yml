@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 ドキュメント
+    url: https://github.com/t-tsuji/diopside/blob/main/README.md
+    about: まずドキュメントをご確認ください
+  - name: 💬 ディスカッション
+    url: https://github.com/t-tsuji/diopside/discussions
+    about: コミュニティで質問やアイデアを議論してください
