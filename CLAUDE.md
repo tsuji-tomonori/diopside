@@ -182,65 +182,122 @@ Use `task put` or `moon run :put` to import video metadata from JSON files into 
 
 ### Documentation Structure
 
-The project uses a hierarchical documentation structure:
+The project uses a categorized documentation structure:
 
 ```
 docs/
-├── README.md                     # Project overview (Japanese)
-├── design-specification.md       # Comprehensive design document
-├── architecture.md              # Technical architecture details
-├── deployment.md                # Deployment procedures
-├── contributing.md              # Development guidelines
-├── cross-stack-deployment.md    # Cross-region deployment notes
-├── IMPLEMENTATION_SUMMARY.md    # Feature implementation history
-├── BUGFIX_SUMMARY.md           # Bug fix history
-├── REFACTOR_SUMMARY.md         # Refactoring history
-├── CROSS_REGION_FIX_SUMMARY.md # Cross-region fix documentation
-├── FONT_PRELOAD_FIX_SUMMARY.md # Font optimization fixes
-└── LAMBDA_LAYER_FIX_SUMMARY.md # Lambda layer optimization fixes
+├── README.md                          # Main project overview
+├── design/                           # Design & Architecture Documents
+│   ├── design-specification.md       # Comprehensive design document
+│   ├── architecture.md              # Technical architecture details
+│   └── api-reference.md             # Detailed API specification
+├── development/                      # Development Guidelines
+│   ├── contributing.md              # Development workflow & standards
+│   └── testing-guide.md             # Testing strategy & procedures
+├── operations/                       # Operations & Maintenance
+│   ├── deployment.md                # Deployment procedures
+│   ├── monitoring.md                # Monitoring & observability
+│   └── troubleshooting.md           # Common issues & solutions
+└── user-docs/                       # User-Facing Documentation
+    └── installation.md              # Local setup instructions
 ```
+
+**Root Level Documents:**
+- `LICENSE` - MIT License
+- `SECURITY.md` - Security policy & vulnerability reporting
+- `CLAUDE.md` - This file (Claude Code guidance)
+
+### Documentation Categories
+
+1. **Design Documents** (`docs/design/`): Architecture, specifications, and API documentation
+2. **Development** (`docs/development/`): Guidelines for contributors and developers
+3. **Operations** (`docs/operations/`): Deployment, monitoring, and troubleshooting
+4. **User Documentation** (`docs/user-docs/`): Installation and usage guides
+
+### Required Documents
+
+Based on standard project documentation practices, these documents **must be maintained**:
+
+#### Core Project Documents
+- `README.md` - Project overview, quick start, basic usage
+- `LICENSE` - Legal license terms
+- `SECURITY.md` - Security policy for vulnerability reporting
+
+#### Design Documents (**Write to CLAUDE.md when creating/updating**)
+- `docs/design/design-specification.md` - Comprehensive design document
+- `docs/design/architecture.md` - Technical architecture and system design
+- `docs/design/api-reference.md` - Complete API specification
+
+#### Development Documents (**Write to CLAUDE.md when creating/updating**)
+- `docs/development/contributing.md` - Development workflow, coding standards
+- `docs/development/testing-guide.md` - Testing strategy, procedures, examples
+
+#### Operations Documents (**Write to CLAUDE.md when creating/updating**)
+- `docs/operations/deployment.md` - Production deployment procedures
+- `docs/operations/monitoring.md` - Monitoring, logging, alerting setup
+- `docs/operations/troubleshooting.md` - Common issues and solutions
+
+#### User Documents (**Write to CLAUDE.md when creating/updating**)
+- `docs/user-docs/installation.md` - Local development setup
 
 ### Documentation Maintenance Schedule
 
 **When making changes, update these documents:**
 
 #### Code Changes
-- **When adding new features**: Update `design-specification.md` (§3-4), `architecture.md` (API section), `README.md` (usage)
-- **When changing API**: Update `design-specification.md` (§4), `architecture.md` (§4), and API docs in FastAPI code
-- **When modifying infrastructure**: Update `architecture.md` (§2), `deployment.md` (§3-4), `design-specification.md` (§2)
-- **When changing build/deploy process**: Update `deployment.md`, this CLAUDE.md (commands section), Taskfile.yaml comments
+- **API changes**: Update `docs/design/api-reference.md`, `docs/design/architecture.md` (§4)
+- **New features**: Update `docs/design/design-specification.md` (§3-4), `README.md` (usage)
+- **Infrastructure changes**: Update `docs/design/architecture.md` (§2), `docs/operations/deployment.md`
+- **Build/deploy changes**: Update `docs/operations/deployment.md`, this CLAUDE.md (commands)
 
-#### Bug Fixes
-- **After fixing critical bugs**: Add entry to `BUGFIX_SUMMARY.md` with problem description, solution, and prevention measures
-- **When fixing performance issues**: Update `design-specification.md` (§7), `architecture.md` (performance sections)
+#### Development Process Changes
+- **Testing procedures**: Update `docs/development/testing-guide.md`
+- **Coding standards**: Update `docs/development/contributing.md`
+- **Local setup changes**: Update `docs/user-docs/installation.md`
 
-#### Refactoring
-- **After major refactoring**: Update `REFACTOR_SUMMARY.md`, review all architecture documents for accuracy
-- **When changing project structure**: Update this CLAUDE.md (Directory Structure section), README.md
-
-#### Infrastructure Changes
-- **AWS resource changes**: Update `architecture.md` (§3, §5), `deployment.md` (§3-4), `design-specification.md` (§6)
-- **Security updates**: Update `architecture.md` (§4), `design-specification.md` (§6)
-- **Cross-region/multi-stack changes**: Update `cross-stack-deployment.md`
+#### Operations Changes
+- **Monitoring setup**: Update `docs/operations/monitoring.md`
+- **New troubleshooting solutions**: Update `docs/operations/troubleshooting.md`
+- **Deployment procedures**: Update `docs/operations/deployment.md`
 
 ### Documentation Quality Standards
 
-1. **Japanese Documentation**: Use formal Japanese for user-facing docs (README.md, design-specification.md)
-2. **Technical Documentation**: Use English for technical details (this CLAUDE.md, code comments)
-3. **Code Examples**: Always test code examples before committing
-4. **Version Alignment**: Update version numbers and dependencies when they change
-5. **Broken Links**: Check internal links when restructuring documents
+1. **Language Usage**:
+   - **Japanese**: User-facing docs (README.md, design-specification.md)
+   - **English**: Technical docs (CLAUDE.md, API docs, code comments)
+
+2. **Code Examples**: Always test examples before committing
+
+3. **Version Alignment**: Update version numbers when dependencies change
+
+4. **Links**: Verify internal links when restructuring
+
+### Document Creation Guidelines
+
+**When creating new documents, add guidance to CLAUDE.md for:**
+- When the document should be updated
+- What sections need maintenance
+- Dependencies with other documents
+- Quality standards specific to that document type
 
 ### Auto-Update Triggers
 
-**Always update simultaneously:**
-- Package.json changes → Update dependency versions in architecture.md, README.md
-- New API endpoints → Update design-specification.md §4, architecture.md API section
-- CDK stack changes → Update deployment.md, architecture.md infrastructure sections
-- New environment variables → Update deployment.md environment section
+**Simultaneous updates required:**
+- `package.json` changes → Update versions in `docs/design/architecture.md`, `README.md`
+- New API endpoints → Update `docs/design/api-reference.md`, `docs/design/architecture.md`
+- CDK changes → Update `docs/operations/deployment.md`, `docs/design/architecture.md`
+- Environment variables → Update `docs/operations/deployment.md`, `docs/user-docs/installation.md`
 
 ### Review Schedule
 
-**Monthly Review**: Check accuracy of architecture.md, design-specification.md against actual implementation
-**Release Review**: Update all version references, verify all links work, check command examples
-**Quarterly Review**: Review documentation structure effectiveness, consolidate or split documents as needed
+- **Monthly**: Verify accuracy of design documents against implementation
+- **Release**: Update all version references, verify links, test command examples
+- **Quarterly**: Review documentation structure effectiveness, consolidate or reorganize as needed
+
+### Missing Standard Documents
+
+Documents commonly found in projects but **not currently needed**:
+- `CHANGELOG.md` - Use GitHub releases instead
+- `CODE_OF_CONDUCT.md` - Not needed for personal project
+- `SUPPORT.md` - Information included in README.md
+- API client SDKs - Auto-generated from FastAPI OpenAPI spec

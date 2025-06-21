@@ -331,19 +331,19 @@ from aws_cdk import (
 class BaseStack(Stack):
     def __init__(self, scope, construct_id, environment, **kwargs):
         super().__init__(scope, construct_id, **kwargs)
-        
+
         # DynamoDB テーブル
         self.dynamodb_table = self._create_dynamodb_table()
-        
+
         # Lambda 関数
         self.lambda_function = self._create_lambda_function()
-        
+
         # API Gateway
         self.api_gateway = self._create_api_gateway()
-        
+
         # S3 バケット
         self.s3_bucket = self._create_s3_bucket()
-        
+
         # CloudFront ディストリビューション
         self.cloudfront_distribution = self._create_cloudfront_distribution()
 ```

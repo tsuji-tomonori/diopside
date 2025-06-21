@@ -246,7 +246,7 @@ describe('VideoCard', () => {
     };
 
     render(<VideoCard video={mockVideo} />);
-    
+
     expect(screen.getByText('テスト動画')).toBeInTheDocument();
     expect(screen.getByText('テスト')).toBeInTheDocument();
   });
@@ -283,7 +283,7 @@ def test_s3_bucket_created():
     app = cdk.App()
     stack = DevStack(app, "TestStack")
     template = assertions.Template.from_stack(stack)
-    
+
     template.has_resource_properties("AWS::S3::Bucket", {
         "VersioningConfiguration": {
             "Status": "Enabled"
@@ -311,12 +311,12 @@ async def get_videos(
 ) -> VideoListResponse:
     """
     指定された年の動画一覧を取得します。
-    
+
     Args:
         year: 取得する年
         limit: 取得件数（1-100）
         offset: オフセット
-    
+
     Returns:
         VideoListResponse: 動画一覧とメタデータ
     """
@@ -327,7 +327,7 @@ async def get_videos(
 ```typescript
 /**
  * 動画カードコンポーネント
- * 
+ *
  * @param video - 表示する動画データ
  * @param onClick - クリック時のコールバック関数
  * @returns JSX.Element
@@ -357,7 +357,7 @@ from pydantic import BaseModel, validator
 class VideoCreate(BaseModel):
     title: str
     video_url: str
-    
+
     @validator('title')
     def validate_title(cls, v):
         if len(v.strip()) == 0:
