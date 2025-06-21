@@ -1,14 +1,20 @@
 import os
 
 from fastapi import APIRouter, HTTPException, Query
-from models import TagNode, Video
+from models.video import TagNode, Video
 from pydantic import BaseModel
-from services import DynamoDBService
+from services.dynamodb_service import DynamoDBService
 
 router = APIRouter(prefix="/api", tags=["videos"])
 
 # Initialize DynamoDB service
 db_service = DynamoDBService(os.getenv("DYNAMODB_TABLE_NAME", "videos"))
+
+
+@router.get("/health")
+async def api_health_check() -> dict[str, str]:
+    """API health check endpoint."""
+    return {"status": "healthy", "api": "operational"}
 
 
 class VideosResponse(BaseModel):

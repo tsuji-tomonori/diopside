@@ -4,7 +4,7 @@ from aws_lambda_powertools import Logger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
-from routers import videos_router
+from routers.videos import router as videos_router
 
 # Create FastAPI application
 app = FastAPI(
