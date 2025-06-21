@@ -50,6 +50,16 @@ class FrontEndConstruct(Construct):
             enable_accept_encoding_brotli=True,
         )
 
+        # CloudFront Functionを作成してディレクトリアクセス時にindex.htmlを追加
+        directory_index_function = cloudfront.Function(
+            self,
+            "DirectoryIndexFunction",
+            code=cloudfront.FunctionCode.from_file(
+                file_path="package/infra/src/cloudfront-functions/directory-index.js"
+            ),
+            comment="Add index.html to directory requests",
+        )
+
         self.static_distribution = cloudfront.Distribution(
             self,
             "Distribution",
@@ -60,6 +70,12 @@ class FrontEndConstruct(Construct):
                 ),
                 viewer_protocol_policy=cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
                 cache_policy=cloudfront.CachePolicy.CACHING_OPTIMIZED,
+                function_associations=[
+                    cloudfront.FunctionAssociation(
+                        function=directory_index_function,
+                        event_type=cloudfront.FunctionEventType.VIEWER_REQUEST,
+                    )
+                ],
             ),
             additional_behaviors={
                 # フォントファイル用の専用ビヘイビア
@@ -106,13 +122,14 @@ class FrontEndConstruct(Construct):
                 ),
             },
             error_responses=[
-                # SPA routing support: 404/403 errors should return index.html
+                # 静的エクスポート用: 404エラーの場合は適切なindex.htmlを返す
                 cloudfront.ErrorResponse(
                     http_status=404,
                     response_http_status=200,
                     response_page_path="/index.html",
                     ttl=cdk.Duration.minutes(5),
                 ),
+                # 403エラーの場合も同様
                 cloudfront.ErrorResponse(
                     http_status=403,
                     response_http_status=200,
