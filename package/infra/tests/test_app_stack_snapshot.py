@@ -25,10 +25,10 @@ def test_app_stack_snapshot() -> None:
 
     # Assert
     template = Template.from_stack(stack)
-    
+
     # スナップショットを生成（初回実行時に作成される）
     assert template.to_json() is not None
-    
+
     # 主要なリソースが存在することを確認
     template.resource_count_is("AWS::DynamoDB::Table", 1)
     template.resource_count_is("AWS::Lambda::Function", 3)  # メイン + S3デプロイメント用カスタムリソース2つ
@@ -55,11 +55,11 @@ def test_app_stack_outputs() -> None:
 
     # Assert
     template = Template.from_stack(stack)
-    
+
     # 出力値の存在を確認
     outputs = template.find_outputs("*")
     output_keys = list(outputs.keys())
-    
+
     assert "ApiGatewayUrl" in output_keys
     assert "FrontendUrl" in output_keys
     assert "DynamoDBTableName" in output_keys

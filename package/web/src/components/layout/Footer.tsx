@@ -13,7 +13,7 @@ export function Footer() {
             <HeartIcon className="w-4 h-4 text-red-500" />
             <span>for 白雪巴さん</span>
           </div>
-          
+
           <div className="text-xs text-gray-500 dark:text-gray-500">
             <p>
               このサイトは白雪巴さんのファンサイトです。
@@ -21,17 +21,17 @@ export function Footer() {
               動画の著作権は白雪巴さんに帰属します。
             </p>
           </div>
-          
+
           <div className="flex justify-center space-x-6 text-xs">
-            <Link 
-              href="https://www.youtube.com/@shirayukitomoe" 
+            <Link
+              href="https://www.youtube.com/@shirayukitomoe"
               isExternal
               className="text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400"
             >
               YouTube
             </Link>
-            <Link 
-              href="https://twitter.com/shirayuki_tomoe" 
+            <Link
+              href="https://twitter.com/shirayuki_tomoe"
               isExternal
               className="text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400"
             >

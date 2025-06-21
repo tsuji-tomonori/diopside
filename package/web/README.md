@@ -155,11 +155,11 @@ interface ButtonProps {
   onClick?: () => void;
 }
 
-const Button: React.FC<ButtonProps> = ({ 
-  variant, 
-  size, 
-  children, 
-  ...props 
+const Button: React.FC<ButtonProps> = ({
+  variant,
+  size,
+  children,
+  ...props
 }) => {
   // 実装
 };
@@ -219,7 +219,7 @@ describe('VideoCard', () => {
 
   it('動画情報を正しく表示する', () => {
     render(<VideoCard video={mockVideo} />);
-    
+
     expect(screen.getByText('テスト配信')).toBeInTheDocument();
     expect(screen.getByText('雑談')).toBeInTheDocument();
     expect(screen.getByRole('img')).toHaveAttribute('alt', 'テスト配信');
@@ -241,7 +241,7 @@ test.describe('ホームページ', () => {
   test('ナビゲーションメニューが表示される', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('nav')).toBeVisible();
-    
+
     const expectedLinks = ['ホーム', 'アーカイブ', '検索', 'メモリーゲーム'];
     for (const linkText of expectedLinks) {
       const link = page.getByRole('link', { name: linkText });
@@ -256,7 +256,7 @@ test.describe('ホームページ', () => {
 // アクセシビリティテストの例
 test('基本的なランドマーク要素が存在する', async ({ page }) => {
   await page.goto('/');
-  
+
   // メインコンテンツ領域
   const main = page.locator('main, [role="main"]');
   await expect(main).toBeVisible();
@@ -276,7 +276,7 @@ test('基本的なランドマーク要素が存在する', async ({ page }) => 
 // パフォーマンステストの例
 test('Core Web Vitals が基準を満たす', async ({ page }) => {
   await page.goto('/');
-  
+
   // Largest Contentful Paint (LCP) の測定
   const lcpMetric = await page.evaluate(() => {
     return new Promise((resolve) => {

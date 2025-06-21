@@ -68,7 +68,7 @@ export function MemoryGame({ thumbnails, onGameComplete, className }: MemoryGame
     }
 
     // Flip the card
-    setCards(prev => prev.map(c => 
+    setCards(prev => prev.map(c =>
       c.id === cardId ? { ...c, isFlipped: true } : c
     ))
 
@@ -87,20 +87,20 @@ export function MemoryGame({ thumbnails, onGameComplete, className }: MemoryGame
       setTimeout(() => {
         if (firstCard && secondCard && firstCard.imageUrl === secondCard.imageUrl) {
           // Match found
-          setCards(prev => prev.map(c => 
-            c.id === firstCardId || c.id === secondCardId 
+          setCards(prev => prev.map(c =>
+            c.id === firstCardId || c.id === secondCardId
               ? { ...c, isMatched: true }
               : c
           ))
         } else {
           // No match - flip cards back
-          setCards(prev => prev.map(c => 
-            c.id === firstCardId || c.id === secondCardId 
+          setCards(prev => prev.map(c =>
+            c.id === firstCardId || c.id === secondCardId
               ? { ...c, isFlipped: false }
               : c
           ))
         }
-        
+
         setFlippedCards([])
         setIsProcessing(false)
       }, 1000)
@@ -141,7 +141,7 @@ export function MemoryGame({ thumbnails, onGameComplete, className }: MemoryGame
               手数: {moves}
             </div>
           </div>
-          
+
           <Button
             color="primary"
             variant="flat"
@@ -169,8 +169,8 @@ export function MemoryGame({ thumbnails, onGameComplete, className }: MemoryGame
             <Card
               key={card.id}
               className={`aspect-square cursor-pointer transition-all duration-300 ${
-                card.isFlipped || card.isMatched 
-                  ? 'scale-105' 
+                card.isFlipped || card.isMatched
+                  ? 'scale-105'
                   : 'hover:scale-102'
               }`}
               isPressable={!card.isFlipped && !card.isMatched && !isProcessing}

@@ -10,11 +10,11 @@ interface ErrorMessageProps {
   className?: string
 }
 
-export function ErrorMessage({ 
-  title = 'エラーが発生しました', 
-  message, 
+export function ErrorMessage({
+  title = 'エラーが発生しました',
+  message,
   onRetry,
-  className 
+  className
 }: ErrorMessageProps) {
   return (
     <Card className={`max-w-md mx-auto ${className || ''}`}>
@@ -27,8 +27,8 @@ export function ErrorMessage({
           {message}
         </p>
         {onRetry && (
-          <Button 
-            color="primary" 
+          <Button
+            color="primary"
             variant="flat"
             onPress={onRetry}
           >

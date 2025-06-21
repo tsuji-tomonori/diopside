@@ -17,10 +17,10 @@ test.describe('ホームページ', () => {
   test('ナビゲーションメニューが表示される', async ({ page }) => {
     // ナビゲーションリンクの確認
     await expect(page.locator('nav')).toBeVisible();
-    
+
     // 主要なナビゲーションリンクの存在確認
     const expectedLinks = ['ホーム', 'アーカイブ', '検索', 'メモリーゲーム'];
-    
+
     for (const linkText of expectedLinks) {
       const link = page.getByRole('link', { name: linkText });
       await expect(link).toBeVisible();
@@ -51,11 +51,11 @@ test.describe('ホームページ', () => {
   test('アクセシビリティ基準を満たす', async ({ page }) => {
     // メインランドマークの存在確認
     await expect(page.locator('main')).toBeVisible();
-    
+
     // 見出し階層の確認
     const h1 = page.locator('h1');
     await expect(h1).toBeVisible();
-    
+
     // フォーカス可能な要素のキーボードナビゲーション
     await page.keyboard.press('Tab');
     const focusedElement = page.locator(':focus');
@@ -65,11 +65,11 @@ test.describe('ホームページ', () => {
   test('ダークモード切り替えが機能する', async ({ page }) => {
     // ダークモード切り替えボタンを探す
     const darkModeToggle = page.locator('[aria-label*="ダークモード"], [aria-label*="テーマ"], button[data-theme-toggle]');
-    
+
     if (await darkModeToggle.isVisible()) {
       // 初期状態を記録
       const initialTheme = await page.evaluate(() => {
-        return document.documentElement.classList.contains('dark') || 
+        return document.documentElement.classList.contains('dark') ||
                document.documentElement.getAttribute('data-theme') === 'dark';
       });
 
@@ -78,7 +78,7 @@ test.describe('ホームページ', () => {
 
       // テーマが変更されたことを確認
       const newTheme = await page.evaluate(() => {
-        return document.documentElement.classList.contains('dark') || 
+        return document.documentElement.classList.contains('dark') ||
                document.documentElement.getAttribute('data-theme') === 'dark';
       });
 

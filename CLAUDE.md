@@ -25,6 +25,9 @@ moon run :synth            # Synthesize CDK templates
 moon run :destroy          # Destroy infrastructure
 
 # Development & Testing
+moon run :setup            # Complete project setup (dependencies + pre-commit)
+moon run :setup-precommit  # Install pre-commit and setup git hooks
+moon run :update-precommit # Update pre-commit hooks to latest versions
 moon run :lint             # Run linting for all affected projects
 moon run :test             # Run tests for all affected projects
 moon run api:lint          # Run backend linting

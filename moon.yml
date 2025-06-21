@@ -1,6 +1,12 @@
 language: python
 type: application
 tasks:
+  setup-precommit:
+    command: pip install pre-commit && pre-commit install
+  setup:
+    command: uv sync && moon run :setup-precommit
+  update-precommit:
+    command: pre-commit autoupdate
   diff:
     command: uv run --group infra cdk diff
     deps:

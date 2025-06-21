@@ -19,7 +19,7 @@
 moon run web:lint
 moon run web:test
 
-# バックエンド  
+# バックエンド
 moon run api:lint
 moon run api:test
 
@@ -123,7 +123,7 @@ git log --oneline -10
 const d = new Date();
 const u = await fetch('/api/users').then(r => r.json());
 
-// ✅ 良い例  
+// ✅ 良い例
 const currentDate = new Date();
 const users = await fetchUsers();
 ```
@@ -142,11 +142,11 @@ describe('動画検索機能', () => {
   it('正常系: キーワードで検索できる', async () => {
     // Arrange, Act, Assert
   });
-  
+
   it('異常系: 空のキーワードでエラーになる', async () => {
     // エラーケースのテスト
   });
-  
+
   it('境界値: 最大長のキーワードで検索できる', async () => {
     // 境界値テスト
   });
@@ -227,7 +227,7 @@ describe('動画検索機能', () => {
 
 参考: https://example.com/n-plus-one-solution
 
-# ❌ 悪いコメント  
+# ❌ 悪いコメント
 ここ問題あり
 ```
 

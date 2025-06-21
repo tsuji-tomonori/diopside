@@ -14,13 +14,13 @@ interface VideoGridProps {
   className?: string
 }
 
-export function VideoGrid({ 
-  videos, 
-  loading = false, 
-  hasMore = false, 
-  onLoadMore, 
+export function VideoGrid({
+  videos,
+  loading = false,
+  hasMore = false,
+  onLoadMore,
   onVideoClick,
-  className 
+  className
 }: VideoGridProps) {
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
@@ -71,14 +71,14 @@ export function VideoGrid({
           />
         ))}
       </div>
-      
+
       {/* Infinite scroll trigger */}
       {hasMore && (
         <div ref={loadMoreRef} className="mt-8">
           {loading && <Loading label="さらに読み込み中..." />}
         </div>
       )}
-      
+
       {/* Initial loading */}
       {loading && videos.length === 0 && (
         <Loading label="動画を読み込み中..." />

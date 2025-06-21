@@ -137,9 +137,9 @@ describe('VideoCard', () => {
   })
 
   it('formats date correctly', () => {
-    const videoWithSpecificDate = { 
-      ...mockVideo, 
-      created_at: '2024-12-25T15:30:45Z' 
+    const videoWithSpecificDate = {
+      ...mockVideo,
+      created_at: '2024-12-25T15:30:45Z'
     }
     render(<VideoCard video={videoWithSpecificDate} />)
 
@@ -147,9 +147,9 @@ describe('VideoCard', () => {
   })
 
   it('renders without created_at date section when date is invalid', () => {
-    const videoWithInvalidDate = { 
-      ...mockVideo, 
-      created_at: 'not-a-date' 
+    const videoWithInvalidDate = {
+      ...mockVideo,
+      created_at: 'not-a-date'
     }
     render(<VideoCard video={videoWithInvalidDate} />)
 

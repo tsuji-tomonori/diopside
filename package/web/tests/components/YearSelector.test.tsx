@@ -49,9 +49,9 @@ describe('YearSelector', () => {
 
   it('renders with default years when no availableYears provided', () => {
     render(
-      <YearSelector 
-        selectedYear={2024} 
-        onYearChange={mockOnYearChange} 
+      <YearSelector
+        selectedYear={2024}
+        onYearChange={mockOnYearChange}
       />
     )
 
@@ -63,8 +63,8 @@ describe('YearSelector', () => {
   it('renders with custom available years', () => {
     const availableYears = [2022, 2023, 2024]
     render(
-      <YearSelector 
-        selectedYear={2023} 
+      <YearSelector
+        selectedYear={2023}
         onYearChange={mockOnYearChange}
         availableYears={availableYears}
       />
@@ -78,9 +78,9 @@ describe('YearSelector', () => {
 
   it('calls onYearChange when selection changes', () => {
     render(
-      <YearSelector 
-        selectedYear={2024} 
-        onYearChange={mockOnYearChange} 
+      <YearSelector
+        selectedYear={2024}
+        onYearChange={mockOnYearChange}
       />
     )
 
@@ -94,8 +94,8 @@ describe('YearSelector', () => {
 
   it('applies custom className', () => {
     render(
-      <YearSelector 
-        selectedYear={2024} 
+      <YearSelector
+        selectedYear={2024}
         onYearChange={mockOnYearChange}
         className="custom-year-selector"
       />
@@ -107,9 +107,9 @@ describe('YearSelector', () => {
   it('generates correct default year range', () => {
     // Mock current year as 2024
     render(
-      <YearSelector 
-        selectedYear={2024} 
-        onYearChange={mockOnYearChange} 
+      <YearSelector
+        selectedYear={2024}
+        onYearChange={mockOnYearChange}
       />
     )
 
@@ -123,9 +123,9 @@ describe('YearSelector', () => {
 
   it('handles year selection with string conversion', () => {
     render(
-      <YearSelector 
-        selectedYear={2024} 
-        onYearChange={mockOnYearChange} 
+      <YearSelector
+        selectedYear={2024}
+        onYearChange={mockOnYearChange}
       />
     )
 
@@ -139,9 +139,9 @@ describe('YearSelector', () => {
 
   it('displays correct selected year', () => {
     const { rerender } = render(
-      <YearSelector 
-        selectedYear={2023} 
-        onYearChange={mockOnYearChange} 
+      <YearSelector
+        selectedYear={2023}
+        onYearChange={mockOnYearChange}
       />
     )
 
@@ -149,9 +149,9 @@ describe('YearSelector', () => {
     expect(screen.queryByText('2023年')).toBeInTheDocument()
 
     rerender(
-      <YearSelector 
-        selectedYear={2022} 
-        onYearChange={mockOnYearChange} 
+      <YearSelector
+        selectedYear={2022}
+        onYearChange={mockOnYearChange}
       />
     )
 
@@ -160,9 +160,9 @@ describe('YearSelector', () => {
 
   it('handles empty selection gracefully', () => {
     render(
-      <YearSelector 
-        selectedYear={2024} 
-        onYearChange={mockOnYearChange} 
+      <YearSelector
+        selectedYear={2024}
+        onYearChange={mockOnYearChange}
       />
     )
 
@@ -176,9 +176,9 @@ describe('YearSelector', () => {
 
   it('renders label correctly', () => {
     render(
-      <YearSelector 
-        selectedYear={2024} 
-        onYearChange={mockOnYearChange} 
+      <YearSelector
+        selectedYear={2024}
+        onYearChange={mockOnYearChange}
       />
     )
 

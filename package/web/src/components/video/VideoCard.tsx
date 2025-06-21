@@ -28,7 +28,7 @@ export function VideoCard({ video, onClick, className }: VideoCardProps) {
   }
 
   return (
-    <Card 
+    <Card
       className={`w-full max-w-sm cursor-pointer hover:scale-105 transition-transform ${className || ''}`}
       isPressable
       onPress={handleClick}
@@ -49,12 +49,12 @@ export function VideoCard({ video, onClick, className }: VideoCardProps) {
           </div>
         )}
       </CardBody>
-      
+
       <CardFooter className="flex flex-col items-start p-4 space-y-2">
         <h3 className="text-sm font-semibold line-clamp-2 text-left w-full">
           {video.title}
         </h3>
-        
+
         <div className="flex items-center space-x-2 text-xs text-gray-500">
           <CalendarIcon className="w-4 h-4" />
           <span>{video.year}年</span>
@@ -65,7 +65,7 @@ export function VideoCard({ video, onClick, className }: VideoCardProps) {
             </>
           )}
         </div>
-        
+
         {video.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 w-full">
             <TagIcon className="w-4 h-4 text-gray-400 mt-0.5" />

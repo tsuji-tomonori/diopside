@@ -304,7 +304,7 @@ def test_stack_tags() -> None:
     # Assert
     # スタックが正常に作成されることを確認
     assert template.to_json() is not None
-    
+
     # DynamoDBテーブルが存在することを確認
     template.has_resource("AWS::DynamoDB::Table", {})
 
@@ -314,7 +314,7 @@ def test_environment_specific_configuration() -> None:
     # Arrange
     app = cdk.App()
     project = Project()
-    
+
     # Dev環境
     dev_stack = AppStack(
         app,
@@ -323,7 +323,7 @@ def test_environment_specific_configuration() -> None:
         environment=Env.DEV,
         env=cdk.Environment(account="123456789012", region="us-east-1"),
     )
-    
+
     # Prod環境
     prod_stack = AppStack(
         app,
@@ -340,11 +340,11 @@ def test_environment_specific_configuration() -> None:
     # Dev環境とProd環境でLambda関数の数が同じことを確認
     dev_template.resource_count_is("AWS::Lambda::Function", 3)
     prod_template.resource_count_is("AWS::Lambda::Function", 3)
-    
+
     # Dev環境とProd環境でDynamoDBテーブルが作成されることを確認
     dev_template.resource_count_is("AWS::DynamoDB::Table", 1)
     prod_template.resource_count_is("AWS::DynamoDB::Table", 1)
-    
+
     # Lambda関数の基本設定確認
     dev_template.has_resource_properties(
         "AWS::Lambda::Function",
@@ -353,7 +353,7 @@ def test_environment_specific_configuration() -> None:
             "Handler": "main.handler",
         }),
     )
-    
+
     prod_template.has_resource_properties(
         "AWS::Lambda::Function",
         Match.object_like({

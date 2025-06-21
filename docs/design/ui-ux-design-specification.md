@@ -144,7 +144,7 @@
 
 **サイズ定義とその根拠**:
 - 12px (0.75rem): キャプション、法的情報 - 最小可読サイズ
-- 14px (0.875rem): UI要素、補助テキスト - モバイル標準サイズ  
+- 14px (0.875rem): UI要素、補助テキスト - モバイル標準サイズ
 - 16px (1rem): 本文テキスト - Web標準、アクセシビリティ基準
 - 18px (1.125rem): リード文 - 読みやすさ向上
 - 20px (1.25rem): 小見出し - 階層の明確化
@@ -346,7 +346,7 @@
 
 **Core Web Vitals基準**:
 - LCP (Largest Contentful Paint): 2.5秒以下
-- FID (First Input Delay): 100ms以下  
+- FID (First Input Delay): 100ms以下
 - CLS (Cumulative Layout Shift): 0.1以下
 
 **画像最適化**:

@@ -55,7 +55,7 @@ test.describe('アクセシビリティテスト', () => {
         for (let i = 1; i < headingLevels.length; i++) {
           const currentLevel = headingLevels[i];
           const previousLevel = headingLevels[i - 1];
-          
+
           // 見出しレベルが2以上飛ばないことを確認
           if (currentLevel > previousLevel) {
             expect(currentLevel - previousLevel).toBeLessThanOrEqual(1);
@@ -66,7 +66,7 @@ test.describe('アクセシビリティテスト', () => {
       test('フォーカス管理が適切である', async ({ page }) => {
         // Tabキーでフォーカス移動
         await page.keyboard.press('Tab');
-        
+
         let focusedElement = page.locator(':focus');
         await expect(focusedElement).toBeVisible();
 
@@ -91,11 +91,11 @@ test.describe('アクセシビリティテスト', () => {
           });
 
           // フォーカススタイルが設定されていることを確認
-          const hasFocusStyle = 
-            focusStyles.outline !== 'none' || 
-            focusStyles.boxShadow !== 'none' || 
+          const hasFocusStyle =
+            focusStyles.outline !== 'none' ||
+            focusStyles.boxShadow !== 'none' ||
             focusStyles.border !== 'none';
-          
+
           expect(hasFocusStyle).toBeTruthy();
         }
       });
@@ -103,23 +103,23 @@ test.describe('アクセシビリティテスト', () => {
       test('キーボードナビゲーションが機能する', async ({ page }) => {
         // リンクやボタンがEnterキーで操作可能
         const interactiveElements = page.locator('a, button');
-        
+
         if (await interactiveElements.count() > 0) {
           const firstElement = interactiveElements.first();
           await firstElement.focus();
-          
+
           // Enterキーで操作可能であることを確認
           const tagName = await firstElement.evaluate(el => el.tagName.toLowerCase());
-          
+
           if (tagName === 'button') {
             // ボタンの場合、Enterキーでクリックイベントが発生することを確認
             let clicked = false;
             await firstElement.evaluate(el => {
               el.addEventListener('click', () => { (window as any).testClicked = true; });
             });
-            
+
             await firstElement.press('Enter');
-            
+
             const wasClicked = await page.evaluate(() => (window as any).testClicked);
             if (wasClicked !== undefined) {
               expect(wasClicked).toBeTruthy();
@@ -140,7 +140,7 @@ test.describe('アクセシビリティテスト', () => {
           // 装飾的な画像でない限り、alt属性が存在することを確認
           if (src && !src.includes('decoration') && !src.includes('spacer')) {
             expect(alt).not.toBeNull();
-            
+
             // alt属性が空でないことを確認（装飾的でない場合）
             if (alt !== '') {
               expect(alt!.length).toBeGreaterThan(0);
@@ -181,7 +181,7 @@ test.describe('アクセシビリティテスト', () => {
 
         for (let i = 0; i < sampleSize; i++) {
           const element = textElements.nth(i);
-          
+
           if (await element.isVisible()) {
             const styles = await element.evaluate(el => {
               const computed = window.getComputedStyle(el);
@@ -195,14 +195,14 @@ test.describe('アクセシビリティテスト', () => {
             // RGB値を抽出してコントラスト比を計算
             const textColor = parseRGB(styles.color);
             const bgColor = parseRGB(styles.backgroundColor);
-            
+
             if (textColor && bgColor) {
               const contrastRatio = calculateContrastRatio(textColor, bgColor);
               const fontSize = parseFloat(styles.fontSize);
-              
+
               // WCAG AA基準: 通常テキスト4.5:1、大きなテキスト3:1
               const minRatio = fontSize >= 18 || fontSize >= 14 ? 3 : 4.5;
-              
+
               // コントラスト比が基準を満たすことを確認
               expect(contrastRatio).toBeGreaterThanOrEqual(minRatio);
             }
@@ -244,25 +244,25 @@ test.describe('アクセシビリティテスト', () => {
       test('エラーメッセージが適切に関連付けられている', async ({ page }) => {
         // フォームエラーの確認（エラー状態をシミュレート）
         const forms = page.locator('form');
-        
+
         if (await forms.count() > 0) {
           const form = forms.first();
           const inputs = form.locator('input[required], select[required], textarea[required]');
-          
+
           if (await inputs.count() > 0) {
             const requiredInput = inputs.first();
-            
+
             // 無効な値を入力してエラーを発生させる
             await requiredInput.fill('');
             await requiredInput.blur();
-            
+
             // エラーメッセージが表示される場合の確認
             const errorMessage = page.locator('.error, [role="alert"], .invalid-feedback');
-            
+
             if (await errorMessage.isVisible()) {
               const ariaDescribedby = await requiredInput.getAttribute('aria-describedby');
               const errorId = await errorMessage.getAttribute('id');
-              
+
               // エラーメッセージが入力フィールドに関連付けられていることを確認
               if (errorId) {
                 expect(ariaDescribedby).toContain(errorId);
@@ -291,10 +291,10 @@ test.describe('アクセシビリティテスト', () => {
           });
 
           // スクリーンリーダー専用テキストが視覚的に隠されていることを確認
-          const isVisuallyHidden = 
+          const isVisuallyHidden =
             styles.position === 'absolute' &&
             (styles.width === '1px' || styles.height === '1px' || styles.overflow === 'hidden');
-          
+
           expect(isVisuallyHidden).toBeTruthy();
         }
       });
@@ -318,20 +318,20 @@ function parseRGB(rgbString: string): { r: number; g: number; b: number } | null
 function calculateContrastRatio(color1: { r: number; g: number; b: number }, color2: { r: number; g: number; b: number }): number {
   const luminance1 = calculateLuminance(color1);
   const luminance2 = calculateLuminance(color2);
-  
+
   const lighter = Math.max(luminance1, luminance2);
   const darker = Math.min(luminance1, luminance2);
-  
+
   return (lighter + 0.05) / (darker + 0.05);
 }
 
 function calculateLuminance(color: { r: number; g: number; b: number }): number {
   const { r, g, b } = color;
-  
+
   const [rs, gs, bs] = [r, g, b].map(c => {
     c = c / 255;
     return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
   });
-  
+
   return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
 }

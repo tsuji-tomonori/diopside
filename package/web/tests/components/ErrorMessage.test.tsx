@@ -38,9 +38,9 @@ describe('ErrorMessage', () => {
 
   it('renders with custom title', () => {
     render(
-      <ErrorMessage 
-        title="カスタムエラータイトル" 
-        message="テストメッセージ" 
+      <ErrorMessage
+        title="カスタムエラータイトル"
+        message="テストメッセージ"
       />
     )
 
@@ -51,9 +51,9 @@ describe('ErrorMessage', () => {
   it('renders retry button when onRetry is provided', () => {
     const mockOnRetry = jest.fn()
     render(
-      <ErrorMessage 
-        message="テストメッセージ" 
-        onRetry={mockOnRetry} 
+      <ErrorMessage
+        message="テストメッセージ"
+        onRetry={mockOnRetry}
       />
     )
 
@@ -71,9 +71,9 @@ describe('ErrorMessage', () => {
   it('calls onRetry when retry button is clicked', () => {
     const mockOnRetry = jest.fn()
     render(
-      <ErrorMessage 
-        message="テストメッセージ" 
-        onRetry={mockOnRetry} 
+      <ErrorMessage
+        message="テストメッセージ"
+        onRetry={mockOnRetry}
       />
     )
 
@@ -84,9 +84,9 @@ describe('ErrorMessage', () => {
 
   it('applies custom className', () => {
     render(
-      <ErrorMessage 
-        message="テストメッセージ" 
-        className="custom-error-class" 
+      <ErrorMessage
+        message="テストメッセージ"
+        className="custom-error-class"
       />
     )
 
@@ -95,9 +95,9 @@ describe('ErrorMessage', () => {
 
   it('renders all required elements in correct structure', () => {
     render(
-      <ErrorMessage 
+      <ErrorMessage
         title="テストタイトル"
-        message="テストメッセージ" 
+        message="テストメッセージ"
         onRetry={() => {}}
       />
     )

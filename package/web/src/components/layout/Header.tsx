@@ -1,10 +1,10 @@
 'use client'
 
-import { 
-  Navbar, 
-  NavbarBrand, 
-  NavbarContent, 
-  NavbarItem, 
+import {
+  Navbar,
+  NavbarBrand,
+  NavbarContent,
+  NavbarItem,
   Link,
   Button,
   Dropdown,
@@ -12,10 +12,10 @@ import {
   DropdownMenu,
   DropdownItem
 } from '@heroui/react'
-import { 
-  HomeIcon, 
-  TagIcon, 
-  PuzzlePieceIcon, 
+import {
+  HomeIcon,
+  TagIcon,
+  PuzzlePieceIcon,
   ArrowPathIcon,
   Bars3Icon
 } from '@heroicons/react/24/outline'
@@ -32,7 +32,7 @@ export function Header() {
   ]
 
   return (
-    <Navbar 
+    <Navbar
       className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800"
       maxWidth="full"
     >
@@ -52,14 +52,14 @@ export function Header() {
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
-          
+
           return (
             <NavbarItem key={item.href} isActive={isActive}>
               <Link
                 href={item.href}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                  isActive 
-                    ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300' 
+                  isActive
+                    ? 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
               >
