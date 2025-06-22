@@ -1,0 +1,56 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Setup Moon
+        uses: moonrepo/setup-moon-action@v1
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ap-northeast-1
+
+      - name: Deploy with Moon
+        run: moon run root:deploy
+
+      - name: Upload cdk.out
+        if: contains(github.event_name, 'push')
+        run: |
+          uuid=`uuidgen`
+          echo ${uuid} > ./uuid
+          stack=`cd package/infra && uv run cdk ls 2>&1 | tr -d "\n"`
+          aws s3 cp ./package/infra/cdk.out/ s3://${CDK_OUT_UPLOAD_BUCKET}/${stack}/${uuid}/ --recursive --exclude "*" --include "*.json"
+          aws s3 cp ./uuid s3://${CDK_OUT_UPLOAD_BUCKET}/${stack}/
+        env:
+          AWS_DEFAULT_REGION: 'ap-northeast-1'
+          CDK_OUT_UPLOAD_BUCKET: ${{ secrets.CDK_OUT_UPLOAD_BUCKET }}
