@@ -1,5 +1,14 @@
 # Diopside - 白雪巴ファンサイト
 
+[![Build Status](https://github.com/tsuji-tomonori/diopside/workflows/CI/badge.svg)](https://github.com/tsuji-tomonori/diopside/actions)
+[![TypeScript](https://badgen.net/badge/TypeScript/5.7/blue)](https://www.typescriptlang.org/)
+[![Next.js](https://badgen.net/badge/Next.js/15/black)](https://nextjs.org/)
+[![FastAPI](https://badgen.net/badge/FastAPI/0.115/green)](https://fastapi.tiangolo.com/)
+[![Python](https://badgen.net/badge/Python/3.13/blue)](https://python.org/)
+[![AWS CDK](https://badgen.net/badge/AWS%20CDK/2.170/orange)](https://aws.amazon.com/cdk/)
+[![License](https://badgen.net/badge/License/MIT/blue)](./LICENSE)
+[![Moon](https://badgen.net/badge/Moon/Monorepo/purple)](https://moonrepo.dev/)
+
 白雪巴VTuberの配信アーカイブサイト
 
 ## 🎯 概要
