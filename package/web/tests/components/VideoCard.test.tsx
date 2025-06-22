@@ -143,7 +143,9 @@ describe('VideoCard', () => {
     }
     render(<VideoCard video={videoWithSpecificDate} />)
 
-    expect(screen.getByText('2024/12/26')).toBeInTheDocument()
+    // Test should work regardless of timezone (local JST vs GitHub Actions UTC)
+    const expectedDate = new Date('2024-12-25T15:30:45Z').toLocaleDateString('ja-JP')
+    expect(screen.getByText(expectedDate)).toBeInTheDocument()
   })
 
   it('renders without created_at date section when date is invalid', () => {
