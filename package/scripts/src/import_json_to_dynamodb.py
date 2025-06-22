@@ -10,7 +10,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 try:
-    from dateutil import parser
+    from dateutil import parser  # type: ignore
 except ImportError:
     print(
         "Error: python-dateutil package is required. Install it with: pip install python-dateutil"
