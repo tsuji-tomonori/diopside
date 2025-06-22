@@ -16,30 +16,42 @@ tasks:
     local: true
 
   lint:
-    command: uv run ruff check .
+    command: uv run --group dev ruff check .
     deps:
       - ~:install
     inputs:
       - 'src/**/*.py'
+      - 'tests/**/*.py'
+      - 'main.py'
 
   format:
-    command: uv run ruff format .
+    command: uv run --group dev ruff format .
     deps:
       - ~:install
     inputs:
       - 'src/**/*.py'
+      - 'tests/**/*.py'
+      - 'main.py'
 
   typecheck:
-    command: uv run mypy src/
+    command: uv run --group dev mypy src/
     deps:
       - ~:install
     inputs:
       - 'src/**/*.py'
 
   test:
-    command: uv run pytest tests/ || true
+    command: uv run --group dev pytest tests/
     deps:
       - ~:install
     inputs:
       - 'src/**/*.py'
       - 'tests/**/*.py'
+
+  check:
+    description: "Run lint, type checking, and tests"
+    # 依存タスクとして lint, typecheck, test を指定
+    deps:
+      - ~:lint
+      - ~:typecheck
+      - ~:test
