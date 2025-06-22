@@ -19,8 +19,8 @@ os.environ["DYNAMODB_TABLE_NAME"] = "test-videos-table"
 os.environ["PROJECT_SEMANTIC_VERSION"] = "1.0.0-test"
 os.environ["PROJECT_MAJOR_VERSION"] = "v1"
 
-from app.main import app
-from app.models.video import Video
+from app.main import app  # noqa: E402
+from app.models.video import Video  # noqa: E402
 
 
 @pytest.fixture(scope="function")

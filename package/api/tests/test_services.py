@@ -2,6 +2,7 @@
 
 import json
 from decimal import Decimal
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -16,13 +17,11 @@ class TestDecimalEncoder:
 
     def test_encode_whole_decimal(self) -> None:
         """Test encoding whole number Decimal to int."""
-        encoder = DecimalEncoder()
         result = json.dumps(Decimal("42"), cls=DecimalEncoder)
         assert result == "42"
 
     def test_encode_decimal_with_fraction(self) -> None:
         """Test encoding Decimal with fraction to float."""
-        encoder = DecimalEncoder()
         result = json.dumps(Decimal("42.5"), cls=DecimalEncoder)
         assert result == "42.5"
 
@@ -388,10 +387,10 @@ class TestDynamoDBService:
         assert len(nodes) == 1
         assert nodes[0].name == "ゲーム実況"
         assert nodes[0].count == 2
-        assert len(nodes[0].children) == 2
+        assert len(nodes[0].children) == 2  # type: ignore
         # Check children are sorted
-        assert nodes[0].children[0].name == "アクション"
-        assert nodes[0].children[1].name == "ホラー"
+        assert nodes[0].children[0].name == "アクション"  # type: ignore
+        assert nodes[0].children[1].name == "ホラー"  # type: ignore
 
     @pytest.mark.asyncio
     async def test_build_tag_tree(
@@ -424,11 +423,11 @@ class TestDynamoDBService:
         chat_node = next(n for n in tag_tree if n.name == "雑談")
 
         assert game_node.count == 2
-        assert len(game_node.children) == 1
-        assert game_node.children[0].name == "ホラー"
-        assert game_node.children[0].count == 2
-        assert len(game_node.children[0].children) == 2
+        assert len(game_node.children) == 1  # type: ignore
+        assert game_node.children[0].name == "ホラー"  # type: ignore
+        assert game_node.children[0].count == 2  # type: ignore
+        assert len(game_node.children[0].children) == 2  # type: ignore
 
         assert chat_node.count == 1
-        assert len(chat_node.children) == 1
-        assert chat_node.children[0].name == "料理"
+        assert len(chat_node.children) == 1  # type: ignore
+        assert chat_node.children[0].name == "料理"  # type: ignore

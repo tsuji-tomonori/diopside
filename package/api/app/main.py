@@ -4,7 +4,7 @@ from aws_lambda_powertools import Logger
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
-from routers.videos import router as videos_router
+from routers.videos import router as videos_router  # type: ignore
 
 # Create FastAPI application
 app = FastAPI(
@@ -45,6 +45,6 @@ logger = Logger(service="diopside")
 
 
 @logger.inject_lambda_context(log_event=True)
-def handler(event, context):
+def handler(event, context):  # type: ignore
     """Lambda handler function."""
     return Mangum(app)(event, context)

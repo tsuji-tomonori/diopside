@@ -8,7 +8,7 @@ from typing import Any, cast
 import boto3
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
-from models.video import TagNode, Video
+from models.video import TagNode, Video  # type: ignore
 
 
 class DecimalEncoder(json.JSONEncoder):

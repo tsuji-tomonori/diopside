@@ -1,9 +1,9 @@
 import os
 
 from fastapi import APIRouter, HTTPException, Query
-from models.video import TagNode, Video
+from models.video import TagNode, Video  # type: ignore
 from pydantic import BaseModel
-from services.dynamodb_service import DynamoDBService
+from services.dynamodb_service import DynamoDBService  # type: ignore
 
 router = APIRouter(prefix="/api", tags=["videos"])
 

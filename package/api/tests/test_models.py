@@ -36,7 +36,7 @@ class TestVideoModel:
             video_id="abc123",
             title="Test Video",
             year=2024,
-        )
+        )  # type: ignore
 
         assert video.video_id == "abc123"
         assert video.title == "Test Video"
@@ -52,7 +52,7 @@ class TestVideoModel:
             title="No Tags Video",
             tags=[],
             year=2024,
-        )
+        )  # type: ignore
 
         assert video.tags == []
 
@@ -62,7 +62,7 @@ class TestVideoModel:
             Video(
                 title="Missing video_id",
                 year=2024,
-            )
+            )  # type: ignore
 
         errors = exc_info.value.errors()
         assert any(error["loc"] == ("video_id",) for error in errors)
@@ -107,7 +107,7 @@ class TestVideoModel:
             video_id="json_test",
             title="JSON Test",
             year=2024,
-        )
+        )  # type: ignore
 
         json_str = video.model_dump_json()
         assert '"video_id":"json_test"' in json_str
@@ -120,7 +120,7 @@ class TestTagNodeModel:
 
     def test_tag_node_creation_simple(self) -> None:
         """Test creating a simple tag node without children."""
-        tag = TagNode(name="ゲーム実況")
+        tag = TagNode(name="ゲーム実況")  # type: ignore
 
         assert tag.name == "ゲーム実況"
         assert tag.children is None
@@ -128,7 +128,7 @@ class TestTagNodeModel:
 
     def test_tag_node_creation_with_count(self) -> None:
         """Test creating a tag node with count."""
-        tag = TagNode(name="ホラー", count=10)
+        tag = TagNode(name="ホラー", count=10)  # type: ignore
 
         assert tag.name == "ホラー"
         assert tag.count == 10
@@ -136,8 +136,8 @@ class TestTagNodeModel:
 
     def test_tag_node_creation_with_children(self) -> None:
         """Test creating a tag node with nested children."""
-        child1 = TagNode(name="Cry of Fear", count=5)
-        child2 = TagNode(name="Amnesia", count=3)
+        child1 = TagNode(name="Cry of Fear", count=5)  # type: ignore
+        child2 = TagNode(name="Amnesia", count=3)  # type: ignore
 
         parent = TagNode(
             name="ホラー",
@@ -147,23 +147,23 @@ class TestTagNodeModel:
 
         assert parent.name == "ホラー"
         assert parent.count == 2
-        assert len(parent.children) == 2
-        assert parent.children[0].name == "Cry of Fear"
-        assert parent.children[0].count == 5
-        assert parent.children[1].name == "Amnesia"
-        assert parent.children[1].count == 3
+        assert len(parent.children) == 2  # type: ignore
+        assert parent.children[0].name == "Cry of Fear"  # type: ignore
+        assert parent.children[0].count == 5  # type: ignore
+        assert parent.children[1].name == "Amnesia"  # type: ignore
+        assert parent.children[1].count == 3  # type: ignore
 
     def test_tag_node_deep_nesting(self) -> None:
         """Test creating deeply nested tag nodes."""
-        level3 = TagNode(name="Episode 1", count=1)
+        level3 = TagNode(name="Episode 1", count=1)  # type: ignore
         level2 = TagNode(name="Cry of Fear", children=[level3], count=1)
         level1 = TagNode(name="ホラー", children=[level2], count=1)
         root = TagNode(name="ゲーム実況", children=[level1], count=1)
 
         assert root.name == "ゲーム実況"
-        assert root.children[0].name == "ホラー"
-        assert root.children[0].children[0].name == "Cry of Fear"
-        assert root.children[0].children[0].children[0].name == "Episode 1"
+        assert root.children[0].name == "ホラー"  # type: ignore
+        assert root.children[0].children[0].name == "Cry of Fear"  # type: ignore
+        assert root.children[0].children[0].children[0].name == "Episode 1"  # type: ignore
 
     def test_tag_node_missing_required_fields(self) -> None:
         """Test that missing required fields raise validation error."""
@@ -175,7 +175,7 @@ class TestTagNodeModel:
 
     def test_tag_node_model_serialization(self) -> None:
         """Test tag node model serialization to dict."""
-        child = TagNode(name="Child", count=5)
+        child = TagNode(name="Child", count=5)  # type: ignore
         parent = TagNode(
             name="Parent",
             children=[child],
@@ -192,7 +192,7 @@ class TestTagNodeModel:
 
     def test_tag_node_empty_children_list(self) -> None:
         """Test creating a tag node with empty children list."""
-        tag = TagNode(name="Empty Parent", children=[])
+        tag = TagNode(name="Empty Parent", children=[])  # type: ignore
 
         assert tag.name == "Empty Parent"
         assert tag.children == []
