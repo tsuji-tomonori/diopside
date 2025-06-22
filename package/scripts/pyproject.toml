@@ -48,3 +48,8 @@ warn_unused_ignores = false
 warn_no_return = true
 warn_unreachable = true
 exclude = ["tests/"]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:datetime.datetime.utcnow\\(\\) is deprecated:DeprecationWarning",
+]
