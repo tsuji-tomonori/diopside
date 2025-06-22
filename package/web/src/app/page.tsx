@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { YearSelector } from '@/components/year/YearSelector'
 import { VideoGrid } from '@/components/video/VideoGrid'
@@ -11,6 +12,7 @@ import { useConfig } from '@/contexts/ConfigContext'
 import type { Video } from '@/types/api'
 
 export default function Home() {
+  const router = useRouter()
   const { isLoading: configLoading, error: configError } = useConfig()
   const currentYear = new Date().getFullYear()
   const [selectedYear, setSelectedYear] = useState(currentYear)
@@ -42,8 +44,7 @@ export default function Home() {
   }
 
   const handleVideoClick = (video: Video) => {
-    // TODO: Implement video modal or navigation
-    console.log('Video clicked:', video)
+    router.push(`/video/${encodeURIComponent(video.video_id)}`)
   }
 
   const handleRetry = () => {

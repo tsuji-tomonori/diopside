@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { VideoCard } from '@/components/video/VideoCard'
 import { Loading } from '@/components/common/Loading'
@@ -12,6 +13,7 @@ import { ArrowPathIcon, PlayIcon } from '@heroicons/react/24/outline'
 import type { Video } from '@/types/api'
 
 export default function RandomPage() {
+  const router = useRouter()
   const { isLoading: configLoading, error: configError } = useConfig()
   const [count, setCount] = useState(1)
   const [history, setHistory] = useState<Video[]>([])
@@ -38,8 +40,7 @@ export default function RandomPage() {
   }
 
   const handleVideoClick = (video: Video) => {
-    // TODO: Implement video modal or navigation
-    console.log('Video clicked:', video)
+    router.push(`/video/${encodeURIComponent(video.video_id)}`)
   }
 
   const handleRetry = () => {

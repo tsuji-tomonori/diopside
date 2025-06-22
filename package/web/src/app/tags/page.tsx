@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { TagTree } from '@/components/tag/TagTree'
 import { VideoGrid } from '@/components/video/VideoGrid'
@@ -13,6 +14,7 @@ import { TagIcon } from '@heroicons/react/24/outline'
 import type { Video } from '@/types/api'
 
 export default function TagsPage() {
+  const router = useRouter()
   const { isLoading: configLoading, error: configError } = useConfig()
   const [selectedTagPath, setSelectedTagPath] = useState<string>('')
 
@@ -24,8 +26,7 @@ export default function TagsPage() {
   }
 
   const handleVideoClick = (video: Video) => {
-    // TODO: Implement video modal or navigation
-    console.log('Video clicked:', video)
+    router.push(`/video/${encodeURIComponent(video.video_id)}`)
   }
 
   const getBreadcrumbs = () => {
