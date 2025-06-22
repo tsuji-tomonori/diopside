@@ -507,35 +507,35 @@ version = "0.1.0"
 source = { virtual = "package/scripts" }
 dependencies = [
     { name = "boto3" },
+    { name = "boto3-stubs", extra = ["dynamodb"] },
     { name = "python-dateutil" },
+    { name = "types-python-dateutil" },
 ]
 
 [package.dev-dependencies]
 dev = [
-    { name = "boto3-stubs", extra = ["dynamodb"] },
     { name = "mypy" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-mock" },
     { name = "ruff" },
-    { name = "types-python-dateutil" },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "boto3", specifier = ">=1.38.36" },
+    { name = "boto3-stubs", extras = ["dynamodb"], specifier = ">=1.38.36" },
     { name = "python-dateutil", specifier = ">=2.8.2" },
+    { name = "types-python-dateutil", specifier = ">=2.8.19" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "boto3-stubs", extras = ["dynamodb"], specifier = ">=1.38.36" },
     { name = "mypy", specifier = ">=1.16.0" },
     { name = "pytest", specifier = ">=8.3.5" },
     { name = "pytest-cov", specifier = ">=5.0.0" },
     { name = "pytest-mock", specifier = ">=3.14.0" },
     { name = "ruff", specifier = ">=0.11.13" },
-    { name = "types-python-dateutil", specifier = ">=2.8.19" },
 ]
 
 [[package]]

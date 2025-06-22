@@ -6,17 +6,17 @@ requires-python = ">=3.13"
 dependencies = [
     "boto3>=1.38.36",
     "python-dateutil>=2.8.2",
+    "boto3-stubs[dynamodb]>=1.38.36",
+    "types-python-dateutil>=2.8.19",
 ]
 
 [dependency-groups]
 dev = [
-    "boto3-stubs[dynamodb]>=1.38.36",
     "ruff>=0.11.13",
     "mypy>=1.16.0",
     "pytest>=8.3.5",
     "pytest-cov>=5.0.0",
     "pytest-mock>=3.14.0",
-    "types-python-dateutil>=2.8.19",
 ]
 
 [tool.ruff]
