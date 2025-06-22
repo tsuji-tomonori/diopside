@@ -119,12 +119,18 @@ class DynamoDBService:
             Video object or None if not found
         """
         try:
-            response = self.table.get_item(Key={"video_id": video_id})
+            # Since we don't know the year, we need to scan for the video
+            # This is not optimal but necessary given the current schema
+            response = self.table.scan(
+                FilterExpression="video_id = :video_id",
+                ExpressionAttributeValues={":video_id": video_id},
+            )
 
-            if "Item" not in response:
+            items = response.get("Items", [])
+            if not items:
                 return None
 
-            return self._convert_dynamodb_item_to_video(response["Item"])
+            return self._convert_dynamodb_item_to_video(items[0])
 
         except ClientError as e:
             raise RuntimeError(f"Failed to get video by ID: {e}") from e

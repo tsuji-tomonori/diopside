@@ -321,6 +321,60 @@ class TestVideoEndpoints:
         assert response.status_code == 500
         assert "Database error" in response.json()["detail"]
 
+    @patch("routers.videos.db_service")
+    def test_get_video_by_id_real_video_id(
+        self, mock_db: MagicMock, client: TestClient
+    ) -> None:
+        """Test get video by id with real YouTube video ID format."""
+        mock_video = Video(
+            video_id="9xcMUP0l_Xs",
+            title="【実際の動画】テスト動画",
+            tags=["テスト", "実際"],
+            year=2024,
+            thumbnail_url="https://img.youtube.com/vi/9xcMUP0l_Xs/maxresdefault.jpg",
+            created_at="2024-01-01T12:00:00Z",
+        )
+        mock_db.get_video_by_id = AsyncMock(return_value=mock_video)
+
+        response = client.get("/api/videos/9xcMUP0l_Xs")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["video_id"] == "9xcMUP0l_Xs"
+        assert data["title"] == "【実際の動画】テスト動画"
+        assert data["tags"] == ["テスト", "実際"]
+        assert data["year"] == 2024
+        assert (
+            data["thumbnail_url"]
+            == "https://img.youtube.com/vi/9xcMUP0l_Xs/maxresdefault.jpg"
+        )
+        assert data["created_at"] == "2024-01-01T12:00:00Z"
+
+        # Verify the service was called with correct video ID
+        mock_db.get_video_by_id.assert_called_once_with("9xcMUP0l_Xs")
+
+    @patch("routers.videos.db_service")
+    def test_get_video_by_id_special_characters(
+        self, mock_db: MagicMock, client: TestClient
+    ) -> None:
+        """Test get video by id with special characters in video ID."""
+        mock_video = Video(
+            video_id="test_video-ID.with_special-chars",
+            title="Video with Special ID",
+            tags=["special"],
+            year=2024,
+            thumbnail_url=None,
+            created_at=None,
+        )
+        mock_db.get_video_by_id = AsyncMock(return_value=mock_video)
+
+        response = client.get("/api/videos/test_video-ID.with_special-chars")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["video_id"] == "test_video-ID.with_special-chars"
+        assert data["title"] == "Video with Special ID"
+
 
 class TestCORSHeaders:
     """Test cases for CORS configuration."""
