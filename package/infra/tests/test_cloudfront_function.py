@@ -44,10 +44,6 @@ def execute_function(uri: str) -> str:
     if request_uri.endswith("/"):
         return request_uri + "index.html"
 
-    # 動的ルートの処理: /video/[video_id]の場合はルートのindex.htmlに戻す
-    if re.match(r"^/video/[^/]+$", request_uri):
-        return "/index.html"
-
     # その他のディレクトリパスの場合、/index.htmlを追加
     if not request_uri.endswith("/"):
         return request_uri + "/index.html"
@@ -76,7 +72,9 @@ class TestCloudFrontFunction:
     def test_root_directory(self):
         """ルートディレクトリのテスト"""
         result = execute_function("/")
-        assert result == "/index.html", "ルートディレクトリは/index.htmlに変換されるべき"
+        assert result == "/index.html", (
+            "ルートディレクトリは/index.htmlに変換されるべき"
+        )
 
     @pytest.mark.parametrize(
         "input_uri,expected",
@@ -95,19 +93,19 @@ class TestCloudFrontFunction:
     @pytest.mark.parametrize(
         "uri",
         [
-            "/video/-Wf8FssuAeU",  # 実際の動画ID
-            "/video/abc123",  # 英数字のID
-            "/video/sample-video-1",  # サンプル動画ID
-            "/video/test_video",  # アンダースコア含む
-            "/video/Video-123-Test",  # 複雑なID
+            "/video/-Wf8FssuAeU",  # 実際の動画ID（動的ルートではなくディレクトリとして処理）
+            "/video/abc123",  # 英数字のID（動的ルートではなくディレクトリとして処理）
+            "/video/sample-video-1",  # サンプル動画ID（動的ルートではなくディレクトリとして処理）
+            "/video/test_video",  # アンダースコア含む（動的ルートではなくディレクトリとして処理）
+            "/video/Video-123-Test",  # 複雑なID（動的ルートではなくディレクトリとして処理）
         ],
     )
-    def test_video_dynamic_routes(self, uri):
-        """動画詳細ページの動的ルートのテスト"""
+    def test_video_paths_treated_as_directories(self, uri):
+        """動画IDを含むパスは通常のディレクトリとして処理されるテスト"""
         result = execute_function(uri)
-        assert (
-            result == "/index.html"
-        ), f"動画詳細ページ {uri} はSPAとして/index.htmlに変換されるべき"
+        assert result == uri + "/index.html", (
+            f"動画ID含むパス {uri} は通常のディレクトリとして {uri}/index.html に変換されるべき"
+        )
 
     @pytest.mark.parametrize(
         "input_uri,expected",
@@ -128,7 +126,7 @@ class TestCloudFrontFunction:
             ("/some/deep/path", "/some/deep/path/index.html"),
             # 空文字列（エラー避けのため）
             ("", "/index.html"),
-            # 複数スラッシュ（正規表現にマッチしないため通常処理）
+            # 複数スラッシュ（通常処理）
             ("/video//test", "/video//test/index.html"),
         ],
     )
@@ -142,13 +140,12 @@ class TestCloudFrontFunction:
         [
             "uri.includes('.')",  # 静的ファイルの判定
             "uri.endsWith('/')",  # ディレクトリ判定
-            "uri.match",  # 正規表現マッチの使用
             "/index.html",  # SPAフォールバック
             "request.uri",  # URIの書き換え
         ],
     )
     def test_function_code_contains_required_logic(self, pattern, function_code):
         """関数コードに必要なロジックが含まれているかテスト"""
-        assert (
-            pattern.replace("\\", "") in function_code
-        ), f"関数コードに必要なパターン '{pattern}' が含まれているべき"
+        assert pattern.replace("\\", "") in function_code, (
+            f"関数コードに必要なパターン '{pattern}' が含まれているべき"
+        )

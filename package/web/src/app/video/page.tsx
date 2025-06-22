@@ -10,7 +10,7 @@ function VideoDetailContent() {
   const searchParams = useSearchParams()
   const videoId = searchParams.get('id')
 
-  if (!videoId) {
+  if (!videoId || videoId.trim() === '') {
     return <VideoNotFound />
   }
 
