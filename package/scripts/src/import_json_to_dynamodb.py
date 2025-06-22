@@ -6,8 +6,8 @@ import os
 from datetime import datetime
 from typing import Any, Dict, List
 
-import boto3
-from botocore.exceptions import ClientError
+import boto3  # type: ignore
+from botocore.exceptions import ClientError  # type: ignore
 
 try:
     from dateutil import parser  # type: ignore
