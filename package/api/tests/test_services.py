@@ -207,13 +207,15 @@ class TestDynamoDBService:
     ) -> None:
         """Test successful get_video_by_id."""
         mock_response = {
-            "Item": {
-                "video_id": "found123",
-                "title": "Found Video",
-                "year": Decimal("2024"),
-            }
+            "Items": [
+                {
+                    "video_id": "found123",
+                    "title": "Found Video",
+                    "year": Decimal("2024"),
+                }
+            ]
         }
-        mock_table.get_item.return_value = mock_response
+        mock_table.scan.return_value = mock_response
 
         video = await service.get_video_by_id("found123")
 
@@ -221,28 +223,102 @@ class TestDynamoDBService:
         assert video.video_id == "found123"
         assert video.title == "Found Video"
 
+        # Verify scan was called with correct filter
+        mock_table.scan.assert_called_once_with(
+            FilterExpression="video_id = :video_id",
+            ExpressionAttributeValues={":video_id": "found123"},
+        )
+
     @pytest.mark.asyncio
     async def test_get_video_by_id_not_found(
         self, service: DynamoDBService, mock_table: MagicMock
     ) -> None:
         """Test get_video_by_id when video not found."""
-        mock_table.get_item.return_value = {}
+        mock_table.scan.return_value = {"Items": []}
 
         video = await service.get_video_by_id("notfound")
 
         assert video is None
+
+        # Verify scan was called with correct filter
+        mock_table.scan.assert_called_once_with(
+            FilterExpression="video_id = :video_id",
+            ExpressionAttributeValues={":video_id": "notfound"},
+        )
 
     @pytest.mark.asyncio
     async def test_get_video_by_id_error(
         self, service: DynamoDBService, mock_table: MagicMock
     ) -> None:
         """Test get_video_by_id with DynamoDB error."""
-        mock_table.get_item.side_effect = ClientError(
-            {"Error": {"Code": "InternalServerError"}}, "GetItem"
+        mock_table.scan.side_effect = ClientError(
+            {"Error": {"Code": "InternalServerError"}}, "Scan"
         )
 
         with pytest.raises(RuntimeError, match="Failed to get video by ID"):
             await service.get_video_by_id("error")
+
+    @pytest.mark.asyncio
+    async def test_get_video_by_id_multiple_matches(
+        self, service: DynamoDBService, mock_table: MagicMock
+    ) -> None:
+        """Test get_video_by_id when multiple videos have same ID (edge case)."""
+        mock_response = {
+            "Items": [
+                {
+                    "video_id": "duplicate123",
+                    "title": "First Video",
+                    "year": Decimal("2024"),
+                },
+                {
+                    "video_id": "duplicate123",
+                    "title": "Second Video",
+                    "year": Decimal("2023"),
+                },
+            ]
+        }
+        mock_table.scan.return_value = mock_response
+
+        video = await service.get_video_by_id("duplicate123")
+
+        assert video is not None
+        assert video.video_id == "duplicate123"
+        # Should return the first match
+        assert video.title == "First Video"
+
+    @pytest.mark.asyncio
+    async def test_get_video_by_id_with_pk_sk_structure(
+        self, service: DynamoDBService, mock_table: MagicMock
+    ) -> None:
+        """Test get_video_by_id works with PK/SK DynamoDB structure."""
+        mock_response = {
+            "Items": [
+                {
+                    "PK": "YEAR#2024",
+                    "SK": "VIDEO#9xcMUP0l_Xs",
+                    "video_id": "9xcMUP0l_Xs",
+                    "title": "Test Video with PK/SK",
+                    "year": Decimal("2024"),
+                    "tags": ["test", "pk-sk"],
+                    "thumbnail_url": "https://img.youtube.com/vi/9xcMUP0l_Xs/maxresdefault.jpg",
+                    "created_at": "2024-01-01T12:00:00Z",
+                }
+            ]
+        }
+        mock_table.scan.return_value = mock_response
+
+        video = await service.get_video_by_id("9xcMUP0l_Xs")
+
+        assert video is not None
+        assert video.video_id == "9xcMUP0l_Xs"
+        assert video.title == "Test Video with PK/SK"
+        assert video.year == 2024
+        assert video.tags == ["test", "pk-sk"]
+        assert (
+            video.thumbnail_url
+            == "https://img.youtube.com/vi/9xcMUP0l_Xs/maxresdefault.jpg"
+        )
+        assert video.created_at == "2024-01-01T12:00:00Z"
 
     def test_tags_match_path_exact_match(self, service: DynamoDBService) -> None:
         """Test _tags_match_path with exact match."""
