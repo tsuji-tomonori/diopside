@@ -71,7 +71,7 @@ class DynamoDBService:
         limit: int = 50,
         last_key: str | None = None,
     ) -> tuple[list[Video], str | None]:
-        """Get videos by year with pagination.
+        """Get videos by year with pagination, sorted by date (newest first).
 
         Args:
             year: Year to filter by
@@ -86,6 +86,7 @@ class DynamoDBService:
                 "IndexName": "GSI1",
                 "KeyConditionExpression": Key("year").eq(year),
                 "Limit": limit,
+                "ScanIndexForward": False,  # Sort by created_at in descending order
             }
 
             if last_key:
