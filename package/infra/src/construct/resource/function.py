@@ -1,5 +1,7 @@
 from typing import Any, Self
 
+from pathlib import Path
+
 import aws_cdk as cdk
 from aws_cdk import aws_lambda as lambda_
 from aws_cdk import aws_logs as logs
@@ -33,11 +35,12 @@ class LambdaConstruct(Construct):
         self.env = environment
 
         # Create Lambda layer for dependencies
+        layer_path = str(Path(__file__).resolve().parents[5] / ".layers")
         self.dependencies_layer = lambda_.LayerVersion(
             self,
             "LayerVersion",
             code=lambda_.Code.from_asset(
-                ".layers",
+                layer_path,
                 exclude=[
                     "**/__pycache__",
                     "**/*.pyc",
