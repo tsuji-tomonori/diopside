@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         node-version: [18.x, 20.x]
-        python-version: ['3.11', '3.12']
+        python-version: ['3.13']
 
     steps:
     - uses: actions/checkout@v4
@@ -26,7 +26,7 @@ jobs:
         cache-dependency-path: package/web/package-lock.json
 
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -43,7 +43,7 @@ jobs:
     - name: Install dependencies
       run: |
         cd package/web && npm install
-        uv sync
+        moon run :install
 
     - name: Run linting
       run: moon run :lint
