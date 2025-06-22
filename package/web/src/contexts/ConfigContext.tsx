@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { loadConfig } from '@/lib/config';
+import { loadConfig } from '../lib/config';
 
 interface ConfigContextType {
     config: { NEXT_PUBLIC_API_URL: string } | null;

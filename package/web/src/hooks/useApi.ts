@@ -1,5 +1,5 @@
 import useSWR from 'swr'
-import { ApiClient } from '@/lib/api'
+import { ApiClient } from '../lib/api'
 import { useConfig } from '@/contexts/ConfigContext'
 import type {
   Video,
