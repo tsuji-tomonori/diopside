@@ -84,5 +84,6 @@ tasks:
 
   check:
     deps:
+      - ~:build
       - ~:lint
       - ~:test
