@@ -23,7 +23,6 @@ tasks:
       - 'public/**/*'
       - 'next.config.ts'
       - 'tsconfig.json'
-      - 'tailwind.config.ts'
       - 'postcss.config.mjs'
     outputs:
       - 'out/**'

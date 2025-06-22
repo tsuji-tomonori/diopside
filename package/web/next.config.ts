@@ -27,6 +27,7 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['@heroui/react', '@heroicons/react'],
   },
 
+
   // 7. Webpack configuration to ensure proper path resolution
   webpack: (config) => {
     config.resolve.alias = {
