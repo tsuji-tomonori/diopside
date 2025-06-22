@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import path from 'path'
 
 const nextConfig: NextConfig = {
   // 1. 静的エクスポートを有効化
@@ -24,6 +25,15 @@ const nextConfig: NextConfig = {
   experimental: {
     // 静的エクスポート時のルーティング最適化
     optimizePackageImports: ['@heroui/react', '@heroicons/react'],
+  },
+
+  // 7. Webpack configuration to ensure proper path resolution
+  webpack: (config) => {
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, './src'),
+    }
+    return config
   },
 
   // その他、必要な Next.js のオプションをここに追記…
