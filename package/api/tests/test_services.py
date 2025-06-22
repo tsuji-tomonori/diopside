@@ -132,6 +132,7 @@ class TestDynamoDBService:
         call_args = mock_table.query.call_args[1]
         assert call_args["IndexName"] == "GSI1"
         assert call_args["Limit"] == 2
+        assert call_args["ScanIndexForward"] is False  # Verify descending sort
 
     @pytest.mark.asyncio
     async def test_get_videos_by_year_with_pagination(
@@ -152,6 +153,41 @@ class TestDynamoDBService:
         call_args = mock_table.query.call_args[1]
         assert "ExclusiveStartKey" in call_args
         assert call_args["ExclusiveStartKey"]["video_id"] == "prev"
+        assert call_args["ScanIndexForward"] is False  # Verify descending sort
+
+    @pytest.mark.asyncio
+    async def test_get_videos_by_year_date_sorting(
+        self, service: DynamoDBService, mock_table: MagicMock
+    ) -> None:
+        """Test that get_videos_by_year uses date descending sort."""
+        mock_response = {
+            "Items": [
+                {
+                    "video_id": "newest",
+                    "title": "Newest Video",
+                    "year": Decimal("2024"),
+                    "created_at": "2024-12-01T00:00:00Z",
+                },
+                {
+                    "video_id": "older",
+                    "title": "Older Video",
+                    "year": Decimal("2024"),
+                    "created_at": "2024-01-01T00:00:00Z",
+                },
+            ]
+        }
+        mock_table.query.return_value = mock_response
+
+        videos, _ = await service.get_videos_by_year(2024)
+
+        # Verify query was called with proper sort parameters
+        call_args = mock_table.query.call_args[1]
+        assert call_args["ScanIndexForward"] is False  # Descending order
+
+        # With descending sort, DynamoDB should return newest first
+        assert len(videos) == 2
+        assert videos[0].video_id == "newest"
+        assert videos[1].video_id == "older"
 
     @pytest.mark.asyncio
     async def test_get_videos_by_year_error(
