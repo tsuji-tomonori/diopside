@@ -220,6 +220,269 @@ test.describe('Video Detail Page', () => {
   })
 })
 
+test.describe('Query Parameter Routing Tests', () => {
+  test('should handle video ID via query parameter correctly', async ({ page }) => {
+    const testVideoIds = [
+      '-Wf8FssuAeU',      // 実際のYouTube動画ID（ハイフンで始まる）
+      'abc123',           // 英数字のID
+      'test_video',       // アンダースコア含む
+      'Video-123-Test',   // 複雑なID
+      'sample-video-1'    // サンプル動画ID
+    ]
+
+    for (const videoId of testVideoIds) {
+      // Mock API response for each video ID
+      await page.route(`**/api/videos/${videoId}`, async route => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            video_id: videoId,
+            title: `テスト動画 ${videoId}`,
+            tags: ['テスト'],
+            year: 2023,
+            thumbnail_url: 'https://example.com/thumbnail.jpg',
+            created_at: '2023-06-15T12:00:00Z',
+          }),
+        })
+      })
+
+      // Mock config endpoint
+      await page.route('**/config', async route => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            NEXT_PUBLIC_API_URL: 'https://api.example.com',
+          }),
+        })
+      })
+
+      // Navigate to the query parameter route
+      await page.goto(`/video?id=${encodeURIComponent(videoId)}`)
+
+      // Verify that the page loads correctly
+      await expect(page.getByText(`テスト動画 ${videoId}`)).toBeVisible()
+      await expect(page).toHaveURL(`/video?id=${encodeURIComponent(videoId)}`)
+    }
+  })
+
+  test('should handle URL encoding in video IDs', async ({ page }) => {
+    const videoId = 'test video with spaces'
+    const encodedVideoId = encodeURIComponent(videoId)
+
+    // Mock API response
+    await page.route(`**/api/videos/${videoId}`, async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          video_id: videoId,
+          title: 'スペース含む動画',
+          tags: ['テスト'],
+          year: 2023,
+          thumbnail_url: 'https://example.com/thumbnail.jpg',
+          created_at: '2023-06-15T12:00:00Z',
+        }),
+      })
+    })
+
+    // Mock config endpoint
+    await page.route('**/config', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          NEXT_PUBLIC_API_URL: 'https://api.example.com',
+        }),
+      })
+    })
+
+    // Navigate with encoded URL
+    await page.goto(`/video?id=${encodedVideoId}`)
+
+    // Verify that the page loads correctly
+    await expect(page.getByText('スペース含む動画')).toBeVisible()
+  })
+
+  test('should handle direct URL access to video detail page', async ({ page }) => {
+    const videoId = 'direct-access-test'
+
+    // Mock API response
+    await page.route(`**/api/videos/${videoId}`, async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          video_id: videoId,
+          title: '直接アクセステスト動画',
+          tags: ['直接アクセス'],
+          year: 2023,
+          thumbnail_url: 'https://example.com/thumbnail.jpg',
+          created_at: '2023-06-15T12:00:00Z',
+        }),
+      })
+    })
+
+    // Mock config endpoint
+    await page.route('**/config', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          NEXT_PUBLIC_API_URL: 'https://api.example.com',
+        }),
+      })
+    })
+
+    // Direct navigation to video detail page (simulating browser bookmark or shared URL)
+    await page.goto(`/video?id=${videoId}`)
+
+    // Should load correctly without prior navigation
+    await expect(page.getByText('直接アクセステスト動画')).toBeVisible()
+    await expect(page.getByRole('heading', { name: '直接アクセステスト動画' })).toBeVisible()
+
+    // Verify all expected elements are present
+    await expect(page.getByText('2023年')).toBeVisible()
+    await expect(page.getByText('直接アクセス')).toBeVisible()
+    await expect(page.getByRole('button', { name: /YouTubeで視聴/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: '戻る' })).toBeVisible()
+  })
+
+  test('should handle browser back/forward navigation correctly', async ({ page }) => {
+    const videoIds = ['video-1', 'video-2', 'video-3']
+
+    // Mock API responses for all video IDs
+    for (const videoId of videoIds) {
+      await page.route(`**/api/videos/${videoId}`, async route => {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            video_id: videoId,
+            title: `動画 ${videoId}`,
+            tags: ['ナビゲーションテスト'],
+            year: 2023,
+            thumbnail_url: 'https://example.com/thumbnail.jpg',
+            created_at: '2023-06-15T12:00:00Z',
+          }),
+        })
+      })
+    }
+
+    // Mock config endpoint
+    await page.route('**/config', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          NEXT_PUBLIC_API_URL: 'https://api.example.com',
+        }),
+      })
+    })
+
+    // Navigate through multiple video pages
+    await page.goto(`/video?id=${videoIds[0]}`)
+    await expect(page.getByText(`動画 ${videoIds[0]}`)).toBeVisible()
+
+    await page.goto(`/video?id=${videoIds[1]}`)
+    await expect(page.getByText(`動画 ${videoIds[1]}`)).toBeVisible()
+
+    await page.goto(`/video?id=${videoIds[2]}`)
+    await expect(page.getByText(`動画 ${videoIds[2]}`)).toBeVisible()
+
+    // Test browser back navigation
+    await page.goBack()
+    await expect(page).toHaveURL(`/video?id=${videoIds[1]}`)
+    await expect(page.getByText(`動画 ${videoIds[1]}`)).toBeVisible()
+
+    await page.goBack()
+    await expect(page).toHaveURL(`/video?id=${videoIds[0]}`)
+    await expect(page.getByText(`動画 ${videoIds[0]}`)).toBeVisible()
+
+    // Test browser forward navigation
+    await page.goForward()
+    await expect(page).toHaveURL(`/video?id=${videoIds[1]}`)
+    await expect(page.getByText(`動画 ${videoIds[1]}`)).toBeVisible()
+  })
+
+  test('should handle missing video ID parameter', async ({ page }) => {
+    // Mock config endpoint
+    await page.route('**/config', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          NEXT_PUBLIC_API_URL: 'https://api.example.com',
+        }),
+      })
+    })
+
+    // Navigate to video page without ID parameter
+    await page.goto('/video')
+
+    // Should show not found or error state
+    await expect(page.getByText('動画が見つかりません')).toBeVisible()
+  })
+
+  test('should handle empty video ID parameter', async ({ page }) => {
+    // Mock config endpoint
+    await page.route('**/config', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          NEXT_PUBLIC_API_URL: 'https://api.example.com',
+        }),
+      })
+    })
+
+    // Navigate to video page with empty ID parameter
+    await page.goto('/video?id=')
+
+    // Should show not found or error state
+    await expect(page.getByText('動画が見つかりません')).toBeVisible()
+  })
+
+  test('should handle special characters in video ID', async ({ page }) => {
+    const videoId = 'test-video-&-special_chars%20encoded'
+    const encodedVideoId = encodeURIComponent(videoId)
+
+    // Mock API response
+    await page.route(`**/api/videos/${videoId}`, async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          video_id: videoId,
+          title: '特殊文字含む動画',
+          tags: ['特殊文字'],
+          year: 2023,
+          thumbnail_url: 'https://example.com/thumbnail.jpg',
+          created_at: '2023-06-15T12:00:00Z',
+        }),
+      })
+    })
+
+    // Mock config endpoint
+    await page.route('**/config', async route => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          NEXT_PUBLIC_API_URL: 'https://api.example.com',
+        }),
+      })
+    })
+
+    // Navigate with special characters
+    await page.goto(`/video?id=${encodedVideoId}`)
+
+    // Verify that the page loads correctly
+    await expect(page.getByText('特殊文字含む動画')).toBeVisible()
+  })
+})
+
 test.describe('Video Detail Navigation from Other Pages', () => {
   const mockVideos = [
     {

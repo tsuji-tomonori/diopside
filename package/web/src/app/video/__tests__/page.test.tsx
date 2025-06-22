@@ -1,82 +1,52 @@
-import { render, screen } from '@testing-library/react'
-import VideoDetailPage from '../[id]/page'
+import { render } from '@testing-library/react'
+import { useSearchParams } from 'next/navigation'
+import VideoDetailPage from '../page'
 
-// Mock the VideoDetail component
-jest.mock('@/components/video/VideoDetail', () => {
-  return function MockVideoDetail({ videoId }: { videoId: string }) {
-    return (
-      <div data-testid="video-detail-component">
-        Video Detail for: {videoId}
-      </div>
-    )
-  }
-})
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useSearchParams: jest.fn(),
+}))
+
+// Mock components
+jest.mock('@/components/video/VideoDetail', () => ({
+  __esModule: true,
+  default: ({ videoId }: { videoId: string }) => (
+    <div data-testid="video-detail">Video ID: {videoId}</div>
+  ),
+}))
+
+jest.mock('@/components/video/VideoDetailSkeleton', () => ({
+  __esModule: true,
+  default: () => <div data-testid="video-skeleton">Loading...</div>,
+}))
+
+jest.mock('@/components/video/VideoNotFound', () => ({
+  __esModule: true,
+  default: () => <div data-testid="video-not-found">Video not found</div>,
+}))
 
 describe('VideoDetailPage', () => {
+  const mockUseSearchParams = useSearchParams as jest.MockedFunction<typeof useSearchParams>
+
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  it('renders VideoDetail component with correct video ID', async () => {
-    const mockParams = { id: 'test-video-123' }
+  it('renders video detail when id is provided', () => {
+    const mockSearchParams = new URLSearchParams({ id: 'test-video-id' })
+    mockUseSearchParams.mockReturnValue(mockSearchParams)
 
-    // Since the component is async, we need to render it properly
-    const Component = await VideoDetailPage({ params: Promise.resolve(mockParams) })
-    render(Component)
+    const { getByTestId } = render(<VideoDetailPage />)
 
-    expect(screen.getByTestId('video-detail-component')).toBeInTheDocument()
-    expect(screen.getByText('Video Detail for: test-video-123')).toBeInTheDocument()
+    expect(getByTestId('video-detail')).toHaveTextContent('Video ID: test-video-id')
   })
 
-  it('handles encoded video ID correctly', async () => {
-    const encodedId = encodeURIComponent('video-with-特殊文字')
-    const mockParams = { id: encodedId }
+  it('renders not found when id is missing', () => {
+    const mockSearchParams = new URLSearchParams()
+    mockUseSearchParams.mockReturnValue(mockSearchParams)
 
-    const Component = await VideoDetailPage({ params: Promise.resolve(mockParams) })
-    render(Component)
+    const { getByTestId } = render(<VideoDetailPage />)
 
-    // Should decode the ID properly
-    expect(screen.getByText('Video Detail for: video-with-特殊文字')).toBeInTheDocument()
-  })
-
-  it('handles video ID with spaces', async () => {
-    const encodedId = encodeURIComponent('video with spaces')
-    const mockParams = { id: encodedId }
-
-    const Component = await VideoDetailPage({ params: Promise.resolve(mockParams) })
-    render(Component)
-
-    expect(screen.getByText('Video Detail for: video with spaces')).toBeInTheDocument()
-  })
-
-  it('handles video ID with special characters', async () => {
-    const specialId = 'video-123!@#$%^&*()'
-    const encodedId = encodeURIComponent(specialId)
-    const mockParams = { id: encodedId }
-
-    const Component = await VideoDetailPage({ params: Promise.resolve(mockParams) })
-    render(Component)
-
-    expect(screen.getByText(`Video Detail for: ${specialId}`)).toBeInTheDocument()
-  })
-
-  it('handles empty video ID', async () => {
-    const mockParams = { id: '' }
-
-    const Component = await VideoDetailPage({ params: Promise.resolve(mockParams) })
-    render(Component)
-
-    expect(screen.getByTestId('video-detail-component')).toBeInTheDocument()
-    expect(screen.getByText(/Video Detail for:/)).toBeInTheDocument()
-  })
-
-  it('handles video ID with URL-safe characters', async () => {
-    const videoId = 'video-123_abc-def'
-    const mockParams = { id: videoId }
-
-    const Component = await VideoDetailPage({ params: Promise.resolve(mockParams) })
-    render(Component)
-
-    expect(screen.getByText(`Video Detail for: ${videoId}`)).toBeInTheDocument()
+    expect(getByTestId('video-not-found')).toBeInTheDocument()
   })
 })

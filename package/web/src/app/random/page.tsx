@@ -40,7 +40,7 @@ export default function RandomPage() {
   }
 
   const handleVideoClick = (video: Video) => {
-    router.push(`/video/${encodeURIComponent(video.video_id)}`)
+    router.push(`/video?id=${encodeURIComponent(video.video_id)}`)
   }
 
   const handleRetry = () => {
