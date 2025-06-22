@@ -81,3 +81,8 @@ tasks:
     local: true
     options:
       cache: false
+
+  check:
+    deps:
+      - ~:lint
+      - ~:test

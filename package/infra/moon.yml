@@ -2,7 +2,7 @@ language: python
 type: application
 tasks:
   install:
-    command: uv sync
+    command: uv sync --dev
     options:
       cache: false
 
