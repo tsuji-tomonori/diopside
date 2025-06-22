@@ -68,6 +68,6 @@ class BackendApiConstruct(Construct):
             "Api",
             environment=environment,
             project=project,
-            web_acl_arn=self.waf.web_acl_arn,
+            web_acl_arn=self.waf.web_acl_arn,  # type: ignore
             function=self.server.function,
         )
