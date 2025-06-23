@@ -278,13 +278,17 @@ export function MemoryGame({ thumbnails, onGameComplete, difficulty, gameStats, 
       const videoId = match ? match[1] : null
 
       if (videoId && videoId.trim()) {
-        console.log('Navigating to video:', videoId)
-        router.push(`/?video_id=${encodeURIComponent(videoId)}`)
+        console.log('🎬 Navigating to video:', videoId)
+        console.log('🎬 Full URL:', thumbnailUrl)
+
+        // Navigate to video detail page
+        router.push(`/video?id=${encodeURIComponent(videoId)}`)
       } else {
-        console.error('Could not extract video ID from URL:', thumbnailUrl)
+        console.error('🚨 Could not extract video ID from URL:', thumbnailUrl)
+        console.error('🚨 URL pattern did not match:', thumbnailUrl)
       }
     } catch (error) {
-      console.error('Error handling thumbnail click:', error, thumbnailUrl)
+      console.error('🚨 Error handling thumbnail click:', error, thumbnailUrl)
     }
   }
 
@@ -470,7 +474,10 @@ export function MemoryGame({ thumbnails, onGameComplete, difficulty, gameStats, 
                     key={videoId}
                     className="cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg border-2 border-transparent hover:border-purple-300"
                     isPressable
-                    onPress={() => handleThumbnailClick(thumbnail)}
+                    onPress={() => {
+                      console.log('🎬 Gallery thumbnail clicked:', thumbnail)
+                      handleThumbnailClick(thumbnail)
+                    }}
                   >
                     <CardBody className="p-0 overflow-hidden relative group">
                       <div className="relative w-full aspect-video">
