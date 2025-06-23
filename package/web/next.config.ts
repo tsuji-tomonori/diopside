@@ -16,6 +16,17 @@ const nextConfig: NextConfig = {
   // 4. 静的エクスポート時の画像最適化を無効化
   images: {
     unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'img.youtube.com',
+        pathname: '/vi/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.cloudfront.net',
+      },
+    ],
   },
 
   // 5. 静的エクスポート時のパス設定
