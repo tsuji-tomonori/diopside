@@ -151,23 +151,23 @@ export default function MemoryPage() {
         className="m-0"
         classNames={{
           base: "h-screen w-screen max-h-screen max-w-screen",
-          body: "py-2 sm:py-4 px-4 flex-1 overflow-y-auto",
-          wrapper: "items-start justify-center p-0 pt-safe",
+          body: "py-2 px-3 sm:py-0 sm:px-4 flex-1 overflow-y-auto",
+          wrapper: "items-start justify-center p-0",
           backdrop: "bg-gradient-to-br from-purple-900/90 to-blue-900/90"
         }}
       >
         <ModalContent>
-          <ModalHeader className="flex flex-col gap-2 text-center pb-2 pt-4 sm:pb-4 sm:pt-8">
-            <div className="text-3xl sm:text-6xl mb-1 sm:mb-2">🎮</div>
-            <h2 className="text-xl sm:text-3xl font-bold text-white drop-shadow-lg">
+          <ModalHeader className="flex flex-col gap-1 text-center pb-2 pt-1 sm:pb-4 sm:pt-8 shrink-0">
+            <div className="text-xl sm:text-6xl mb-0 sm:mb-2">🎮</div>
+            <h2 className="text-base sm:text-3xl font-bold text-white drop-shadow-lg">
               難易度を選択してください
             </h2>
-            <p className="text-sm sm:text-lg text-white/90 drop-shadow">
+            <p className="text-xs sm:text-lg text-white/90 drop-shadow">
               あなたのレベルに合わせて挑戦しよう！
             </p>
           </ModalHeader>
-          <ModalBody className="px-4 sm:px-8 flex-1 flex items-start justify-center pt-2 sm:pt-0 sm:items-center">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 w-full max-w-4xl">
+          <ModalBody className="px-3 sm:px-8 flex-1 flex items-start justify-center py-2 sm:py-0 sm:items-center min-h-0">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 w-full max-w-4xl">
               {Object.entries(DIFFICULTY_CONFIG).map(([key, config]) => {
                 const IconComponent = config.icon
                 const colorClasses = {
@@ -203,30 +203,30 @@ export default function MemoryPage() {
                     onPress={() => handleDifficultySelect(key as DifficultyLevel)}
                   >
                     <CardBody className="p-3 sm:p-6 lg:p-8 text-center">
-                      <div className="flex flex-col items-center space-y-4">
-                        <div className={`p-3 sm:p-4 rounded-2xl ${colorClasses.icon} shadow-lg`}>
-                          <IconComponent className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 ${colorClasses.iconColor}`} />
+                      <div className="flex flex-col items-center space-y-2 sm:space-y-4">
+                        <div className={`p-2 sm:p-4 rounded-2xl ${colorClasses.icon} shadow-lg`}>
+                          <IconComponent className={`w-5 h-5 sm:w-10 sm:h-10 lg:w-12 lg:h-12 ${colorClasses.iconColor}`} />
                         </div>
                         <div>
-                          <h3 className="text-lg sm:text-2xl font-bold mb-1 sm:mb-2 text-gray-800 dark:text-gray-200">
+                          <h3 className="text-base sm:text-2xl font-bold mb-1 sm:mb-2 text-gray-800 dark:text-gray-200">
                             {config.label}
                           </h3>
                           <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 leading-relaxed">
                             {config.description}
                           </p>
                         </div>
-                        <div className="mt-3 sm:mt-4">
+                        <div className="mt-1 sm:mt-4">
                           <Button
                             className={`font-bold text-white shadow-lg text-sm sm:text-base ${key === 'beginner' ? 'bg-green-500 hover:bg-green-600' :
                               key === 'intermediate' ? 'bg-yellow-500 hover:bg-yellow-600' :
                                 'bg-red-500 hover:bg-red-600'
                               }`}
-                            size="lg"
+                            size="sm"
                             onPress={() => handleDifficultySelect(key as DifficultyLevel)}
                           >
                             選択する
                           </Button>
-                          <div className="mt-2">
+                          <div className="mt-1 sm:mt-2">
                             <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono">
                               {key === 'beginner' ? '1' : key === 'intermediate' ? '2' : '3'}
                             </span>
@@ -239,17 +239,17 @@ export default function MemoryPage() {
               })}
             </div>
           </ModalBody>
-          <ModalFooter className="justify-center pt-2 pb-4 sm:pt-4 sm:pb-8">
+          <ModalFooter className="justify-center pt-2 pb-2 sm:pt-4 sm:pb-8 shrink-0">
             <div className="text-center">
               <div className="animate-bounce mb-2 sm:mb-4">
-                <p className="text-base sm:text-lg font-semibold text-white drop-shadow-lg">
+                <p className="text-sm sm:text-lg font-semibold text-white drop-shadow-lg">
                   👆 タップして選択してください 👆
                 </p>
               </div>
-              <p className="text-sm text-white/80 drop-shadow mb-2">
+              <p className="text-xs sm:text-sm text-white/80 drop-shadow mb-2">
                 ✨ いつでも難易度は変更できます
               </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-xs text-white/70 drop-shadow">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-xs text-white/70 drop-shadow">
                 <span>カードまたはボタンをタップ</span>
                 <span className="hidden sm:inline">•</span>
                 <span>キーボード: <kbd className="bg-white/20 text-white px-1 rounded">1</kbd> <kbd className="bg-white/20 text-white px-1 rounded">2</kbd> <kbd className="bg-white/20 text-white px-1 rounded">3</kbd></span>
@@ -296,14 +296,6 @@ export default function MemoryPage() {
                       size="sm"
                     >
                       難易度変更
-                    </Button>
-                    <Button
-                      color="primary"
-                      variant="flat"
-                      onPress={handleNewGame}
-                      size="sm"
-                    >
-                      新しいゲーム
                     </Button>
                   </div>
                 </div>
@@ -355,7 +347,7 @@ export default function MemoryPage() {
                     onPress={handleNewGame}
                     className="font-semibold"
                   >
-                    🎮 もう一度プレイ
+                    🔄 リセット
                   </Button>
                   <Button
                     color="secondary"
