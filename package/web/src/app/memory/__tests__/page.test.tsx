@@ -268,7 +268,7 @@ describe('MemoryPage', () => {
       })
     })
 
-    it('新しいゲームボタンが機能する', async () => {
+    it('リセットボタンが機能する', async () => {
       const mockMutate = jest.fn()
       mockUseMemoryThumbnails.mockReturnValue({
         data: mockThumbnails,
@@ -283,9 +283,16 @@ describe('MemoryPage', () => {
       const beginnerCard = screen.getByText('初級').closest('[data-testid="card"]')
       fireEvent.click(beginnerCard!)
 
+      // ゲーム完了を先にシミュレート
       await waitFor(() => {
-        const newGameButton = screen.getByText('新しいゲーム')
-        fireEvent.click(newGameButton)
+        const completeButton = screen.getByTestId('mock-complete-game')
+        fireEvent.click(completeButton)
+      })
+
+      // ゲーム完了後にリセットボタンをクリック
+      await waitFor(() => {
+        const resetButton = screen.getByText('🔄 リセット')
+        fireEvent.click(resetButton)
       })
 
       expect(mockMutate).toHaveBeenCalled()

@@ -108,14 +108,21 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
   })
 
   describe('🔍 問題1: カード枚数が難易度と一致しない問題', () => {
-    it('初級: 6個のサムネイルから正確に12枚（6ペア）のカードが生成される', async () => {
+    it('初級: APIが返すペア済みサムネイルから正確にカードが生成される', async () => {
+      // APIは既にペア化されたサムネイルを返す（6ペア=12枚分）
       const beginnerThumbnails = [
         'https://img.youtube.com/vi/video1/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video1/maxresdefault.jpg', // ペア
         'https://img.youtube.com/vi/video2/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video2/maxresdefault.jpg', // ペア
         'https://img.youtube.com/vi/video3/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video3/maxresdefault.jpg', // ペア
         'https://img.youtube.com/vi/video4/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video4/maxresdefault.jpg', // ペア
         'https://img.youtube.com/vi/video5/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video5/maxresdefault.jpg', // ペア
         'https://img.youtube.com/vi/video6/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video6/maxresdefault.jpg', // ペア
       ]
 
       render(
@@ -127,7 +134,7 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
 
       // 実際のゲームカード要素数を確認
       const cards = screen.getAllByTestId('game-card')
-      expect(cards).toHaveLength(12) // 6サムネイル × 2 = 12枚
+      expect(cards).toHaveLength(12) // APIから受け取った12枚
 
       // ?マークの数を確認（全てのカードが裏向きであることを確認）
       const questionMarks = screen.getAllByText('?')
@@ -146,10 +153,12 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
       })
     })
 
-    it('中級: 8個のサムネイルから正確に16枚（8ペア）のカードが生成される', async () => {
-      const intermediateThumbnails = Array.from({ length: 8 }, (_, i) =>
-        `https://img.youtube.com/vi/video${i + 1}/maxresdefault.jpg`
-      )
+    it('中級: APIが返すペア済みサムネイルから正確に16枚のカードが生成される', async () => {
+      // APIは既にペア化されたサムネイルを返す（8ペア=16枚分）
+      const intermediateThumbnails = Array.from({ length: 16 }, (_, i) => {
+        const videoNum = Math.floor(i / 2) + 1 // 各ビデオが2回ずつ
+        return `https://img.youtube.com/vi/video${videoNum}/maxresdefault.jpg`
+      })
 
       render(
         <MemoryGame
@@ -159,7 +168,7 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
       )
 
       const cards = screen.getAllByTestId('game-card')
-      expect(cards).toHaveLength(16) // 8サムネイル × 2 = 16枚
+      expect(cards).toHaveLength(16) // APIから受け取った16枚
 
       const questionMarks = screen.getAllByText('?')
       expect(questionMarks).toHaveLength(16)
@@ -172,10 +181,12 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
       })
     })
 
-    it('上級: 12個のサムネイルから正確に24枚（12ペア）のカードが生成される', async () => {
-      const advancedThumbnails = Array.from({ length: 12 }, (_, i) =>
-        `https://img.youtube.com/vi/video${i + 1}/maxresdefault.jpg`
-      )
+    it('上級: APIが返すペア済みサムネイルから正確に24枚のカードが生成される', async () => {
+      // APIは既にペア化されたサムネイルを返す（12ペア=24枚分）
+      const advancedThumbnails = Array.from({ length: 24 }, (_, i) => {
+        const videoNum = Math.floor(i / 2) + 1 // 各ビデオが2回ずつ
+        return `https://img.youtube.com/vi/video${videoNum}/maxresdefault.jpg`
+      })
 
       render(
         <MemoryGame
@@ -185,7 +196,7 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
       )
 
       const cards = screen.getAllByTestId('game-card')
-      expect(cards).toHaveLength(24) // 12サムネイル × 2 = 24枚
+      expect(cards).toHaveLength(24) // APIから受け取った24枚
 
       const questionMarks = screen.getAllByText('?')
       expect(questionMarks).toHaveLength(24)
@@ -198,38 +209,43 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
       })
     })
 
-    it('🚨 問題再現: 初級で6個のサムネイルを渡しても24枚のカードが生成される場合', async () => {
-      // この際にこのテストが失敗することで問題を特定
-      const beginnerThumbnails = Array.from({ length: 6 }, (_, i) =>
-        `https://img.youtube.com/vi/video${i + 1}/maxresdefault.jpg`
-      )
+    it('✅ 修正確認: APIが正しい枚数のサムネイルを返す場合', async () => {
+      // 修正後: APIが正しく12枚のペア化されたサムネイルを返す
+      const correctThumbnails = Array.from({ length: 12 }, (_, i) => {
+        const videoNum = Math.floor(i / 2) + 1 // 各ビデオが2回ずつ
+        return `https://img.youtube.com/vi/video${videoNum}/maxresdefault.jpg`
+      })
 
       render(
         <MemoryGame
-          thumbnails={beginnerThumbnails}
+          thumbnails={correctThumbnails}
           difficulty="beginner"
         />
       )
 
       const cards = screen.getAllByTestId('game-card')
 
-      console.log('🚨 問題再現テスト:', {
-        thumbnails: beginnerThumbnails.length,
+      console.log('✅ 修正確認テスト:', {
+        thumbnails: correctThumbnails.length,
         actualCards: cards.length,
-        shouldBe: 12,
-        problemExists: cards.length !== 12
+        expectedCards: 12,
+        isCorrect: cards.length === 12
       })
 
-      // このテストが失敗すれば問題が存在することが確認できる
-      expect(cards.length).toBe(12) // 期待値: 12枚
+      // 正しく12枚のカードが生成される
+      expect(cards.length).toBe(12)
     })
   })
 
-  describe('🔍 問題2: カードをめくっても画像が表示されない問題', () => {
+  describe('🔍 カード表示機能のテスト', () => {
+    // ペア化されたテストサムネイル（6枚=3ペア）
     const testThumbnails = [
       'https://img.youtube.com/vi/video1/maxresdefault.jpg',
+      'https://img.youtube.com/vi/video1/maxresdefault.jpg', // ペア
       'https://img.youtube.com/vi/video2/maxresdefault.jpg',
+      'https://img.youtube.com/vi/video2/maxresdefault.jpg', // ペア
       'https://img.youtube.com/vi/video3/maxresdefault.jpg',
+      'https://img.youtube.com/vi/video3/maxresdefault.jpg', // ペア
     ]
 
     it('カードクリック時の状態変化を詳細に確認', async () => {
@@ -247,12 +263,12 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
       console.log('🔍 クリック前の状態:', {
         cardCount: cards.length,
         questionMarks: screen.getAllByText('?').length,
-        images: screen.queryAllByTestId('next-image').length
+        images: screen.queryAllByRole('img').length
       })
 
       // カードクリック前は?マークが表示されている
       expect(firstCard).toHaveTextContent('?')
-      expect(screen.queryAllByTestId('next-image')).toHaveLength(0)
+      expect(screen.queryAllByRole('img')).toHaveLength(0)
 
       // カードをクリック
       await act(async () => {
@@ -261,12 +277,12 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
 
       console.log('🔍 クリック直後の状態:', {
         questionMarks: screen.getAllByText('?').length,
-        images: screen.queryAllByTestId('next-image').length
+        images: screen.queryAllByRole('img').length
       })
 
       // クリック後は画像が表示され、?マークが消える
       await waitFor(() => {
-        const images = screen.queryAllByTestId('next-image')
+        const images = screen.queryAllByRole('img')
         const remainingQuestionMarks = screen.getAllByText('?')
 
         console.log('🔍 waitFor内の状態:', {
@@ -281,7 +297,7 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
       })
     })
 
-    it('🚨 問題再現: カードをクリックしても画像が表示されない場合', async () => {
+    it('✅ 修正確認: カードをクリックすると画像が正しく表示される', async () => {
       render(
         <MemoryGame
           thumbnails={testThumbnails}
@@ -297,18 +313,18 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
         fireEvent.click(firstCard)
       })
 
-      // 画像が表示されることを期待（このテストが失敗すれば問題が存在）
+      // 画像が表示されることを確認（修正済み）
       await waitFor(() => {
-        const images = screen.queryAllByTestId('next-image')
+        const images = screen.queryAllByRole('img')
 
-        console.log('🚨 画像表示問題テスト:', {
+        console.log('✅ 画像表示修正確認テスト:', {
           clickedCard: firstCard.textContent,
           imagesFound: images.length,
-          shouldShow: 1,
-          problemExists: images.length === 0
+          expectedMinimum: 1,
+          isFixed: images.length > 0
         })
 
-        expect(images.length).toBeGreaterThan(0) // 最低1枚の画像が表示されるべき
+        expect(images.length).toBeGreaterThan(0) // 画像が正しく表示される
       }, { timeout: 2000 })
     })
 
@@ -328,7 +344,7 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
       })
 
       await waitFor(() => {
-        const images = screen.queryAllByTestId('next-image')
+        const images = screen.queryAllByRole('img')
         if (images.length > 0) {
           const firstImage = images[0]
           const src = firstImage.getAttribute('src')
@@ -351,9 +367,12 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
 
   describe('🔍 データフローと状態管理の詳細確認', () => {
     it('thumbnails配列がカード生成時に正しく処理されているか', async () => {
+      // APIからペア化されたサムネイルを受け取る
       const thumbnails = [
         'https://img.youtube.com/vi/video1/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video1/maxresdefault.jpg', // ペア
         'https://img.youtube.com/vi/video2/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video2/maxresdefault.jpg', // ペア
       ]
 
       render(
@@ -363,21 +382,20 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
         />
       )
 
-      // 2個のサムネイル → 4枚のカード（2ペア）が期待される
+      // 4枚のサムネイル（2ペア）→ 4枚のカードが期待される
       const cards = screen.getAllByTestId('game-card')
       expect(cards).toHaveLength(4)
 
-      // カード生成ロジックの確認：各サムネイルから2枚のカードが作られる
-      // 実際のペア判定をせずに、基本的なカード構造を確認
+      // カード生成ロジックの確認：APIから受け取ったサムネイルがそのままカードになる
       console.log('🔍 カード生成確認:', {
         thumbnails: thumbnails.length,
-        expectedCards: thumbnails.length * 2,
+        expectedCards: thumbnails.length,
         actualCards: cards.length,
-        shouldMatch: cards.length === thumbnails.length * 2
+        shouldMatch: cards.length === thumbnails.length
       })
 
       // 基本的な期待値確認
-      expect(cards.length).toBe(thumbnails.length * 2) // 各サムネイル → 2枚のカード
+      expect(cards.length).toBe(thumbnails.length) // 受け取ったサムネイル数と同じ
 
       // 1枚だけクリックして画像表示を確認
       await act(async () => {
@@ -385,7 +403,7 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
       })
 
       await waitFor(() => {
-        const images = screen.getAllByTestId('next-image')
+        const images = screen.getAllByRole('img')
 
         console.log('🔍 カードクリック確認:', {
           imagesDisplayed: images.length,
@@ -404,7 +422,10 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
     it('グリッドレイアウトが難易度に応じて正しく適用されているか', async () => {
       const { rerender } = render(
         <MemoryGame
-          thumbnails={Array.from({ length: 6 }, (_, i) => `thumb${i}.jpg`)}
+          thumbnails={Array.from({ length: 12 }, (_, i) => {
+            const videoNum = Math.floor(i / 2) + 1
+            return `https://img.youtube.com/vi/video${videoNum}/maxresdefault.jpg`
+          })}
           difficulty="beginner"
         />
       )
@@ -415,7 +436,10 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
 
       rerender(
         <MemoryGame
-          thumbnails={Array.from({ length: 8 }, (_, i) => `thumb${i}.jpg`)}
+          thumbnails={Array.from({ length: 16 }, (_, i) => {
+            const videoNum = Math.floor(i / 2) + 1
+            return `https://img.youtube.com/vi/video${videoNum}/maxresdefault.jpg`
+          })}
           difficulty="intermediate"
         />
       )
@@ -426,7 +450,10 @@ describe('MemoryGame Integration Tests - 問題特定', () => {
 
       rerender(
         <MemoryGame
-          thumbnails={Array.from({ length: 12 }, (_, i) => `thumb${i}.jpg`)}
+          thumbnails={Array.from({ length: 24 }, (_, i) => {
+            const videoNum = Math.floor(i / 2) + 1
+            return `https://img.youtube.com/vi/video${videoNum}/maxresdefault.jpg`
+          })}
           difficulty="advanced"
         />
       )

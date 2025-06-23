@@ -91,12 +91,19 @@ jest.mock('@heroicons/react/24/outline', () => ({
 
 describe('MemoryGame', () => {
   const mockPush = jest.fn()
+  // APIから返される、既にペア化されたサムネイル（6ペア=12枚）
   const mockThumbnails = [
     'https://img.youtube.com/vi/video1/maxresdefault.jpg',
+    'https://img.youtube.com/vi/video1/maxresdefault.jpg',
+    'https://img.youtube.com/vi/video2/maxresdefault.jpg',
     'https://img.youtube.com/vi/video2/maxresdefault.jpg',
     'https://img.youtube.com/vi/video3/maxresdefault.jpg',
+    'https://img.youtube.com/vi/video3/maxresdefault.jpg',
+    'https://img.youtube.com/vi/video4/maxresdefault.jpg',
     'https://img.youtube.com/vi/video4/maxresdefault.jpg',
     'https://img.youtube.com/vi/video5/maxresdefault.jpg',
+    'https://img.youtube.com/vi/video5/maxresdefault.jpg',
+    'https://img.youtube.com/vi/video6/maxresdefault.jpg',
     'https://img.youtube.com/vi/video6/maxresdefault.jpg',
   ]
 
@@ -116,17 +123,33 @@ describe('MemoryGame', () => {
   })
 
   describe('ゲーム初期化', () => {
-    it('初期表示時に正しい数のカードが生成される（初級：6ペア = 12枚）', () => {
+    it('初期表示時に正しい数のカードが生成される（初級：APIから12枚）', () => {
+      // APIは既にペア化されたサムネイルを返す（6ペア=12枚）
+      const pairedThumbnails = [
+        'https://img.youtube.com/vi/video1/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video1/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video2/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video2/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video3/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video3/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video4/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video4/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video5/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video5/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video6/maxresdefault.jpg',
+        'https://img.youtube.com/vi/video6/maxresdefault.jpg',
+      ]
+
       render(
         <MemoryGame
-          thumbnails={mockThumbnails}
+          thumbnails={pairedThumbnails}
           difficulty="beginner"
         />
       )
 
       // ゲームグリッド内のカードのみをカウント（?マークがあるカード）
       const memoryCards = screen.getAllByText('?')
-      // 6個のサムネイル × 2（ペア） = 12枚のカード
+      // APIから受け取った12枚のカード
       expect(memoryCards).toHaveLength(12)
     })
 
@@ -143,7 +166,7 @@ describe('MemoryGame', () => {
       expect(questionMarks).toHaveLength(12)
 
       // 画像は表示されていない
-      const images = screen.queryAllByTestId('next-image')
+      const images = screen.queryAllByRole('img')
       expect(images).toHaveLength(0)
     })
 
@@ -161,7 +184,10 @@ describe('MemoryGame', () => {
 
       rerender(
         <MemoryGame
-          thumbnails={mockThumbnails.slice(0, 8)}
+          thumbnails={Array.from({ length: 16 }, (_, i) => {
+            const videoNum = Math.floor(i / 2) + 1
+            return `https://img.youtube.com/vi/video${videoNum}/maxresdefault.jpg`
+          })}
           difficulty="intermediate"
         />
       )
@@ -170,7 +196,10 @@ describe('MemoryGame', () => {
 
       rerender(
         <MemoryGame
-          thumbnails={[...mockThumbnails, ...mockThumbnails]}
+          thumbnails={Array.from({ length: 24 }, (_, i) => {
+            const videoNum = Math.floor(i / 2) + 1
+            return `https://img.youtube.com/vi/video${videoNum}/maxresdefault.jpg`
+          })}
           difficulty="advanced"
         />
       )
@@ -202,7 +231,7 @@ describe('MemoryGame', () => {
 
       // 表向きになる（画像が表示される）
       await waitFor(() => {
-        const images = screen.queryAllByTestId('next-image')
+        const images = screen.queryAllByRole('img')
         expect(images.length).toBeGreaterThan(0)
       })
     })
@@ -269,7 +298,7 @@ describe('MemoryGame', () => {
       // ペアが成立する場合と失敗する場合両方をテスト
       await waitFor(() => {
         const questionMarks = screen.getAllByText('?')
-        const images = screen.queryAllByTestId('next-image')
+        const images = screen.queryAllByRole('img')
 
         // ペア成立の場合：画像が残る、ペア失敗の場合：?マークに戻る
         // 合計は常に12枚
