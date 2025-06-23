@@ -272,11 +272,10 @@ export function MemoryGame({ thumbnails, onGameComplete, difficulty, gameStats, 
   // Handle thumbnail click
   const handleThumbnailClick = (thumbnailUrl: string) => {
     try {
-      // Extract video ID from thumbnail URL
-      // Expected URL format: .../thumbnails/{video_id}.webp or similar
-      const urlParts = thumbnailUrl.split('/')
-      const filename = urlParts[urlParts.length - 1]
-      const videoId = filename.split('.')[0]
+      // Extract video ID from YouTube thumbnail URL
+      // Expected URL format: https://img.youtube.com/vi/{video_id}/maxresdefault.jpg
+      const match = thumbnailUrl.match(/\/vi\/([^\/]+)\//)
+      const videoId = match ? match[1] : null
 
       if (videoId && videoId.trim()) {
         console.log('Navigating to video:', videoId)
@@ -413,7 +412,7 @@ export function MemoryGame({ thumbnails, onGameComplete, difficulty, gameStats, 
               <Card
                 key={card.id}
                 data-testid="game-card"
-                className={`aspect-square cursor-pointer transition-all duration-500 transform ${card.isFlipped || card.isMatched
+                className={`aspect-video cursor-pointer transition-all duration-500 transform ${card.isFlipped || card.isMatched
                   ? 'scale-105 rotate-0'
                   : 'hover:scale-102 hover:-rotate-1'
                   } ${card.isMatched ? 'ring-2 ring-green-400 shadow-lg' : ''

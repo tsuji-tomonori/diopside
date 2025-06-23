@@ -151,22 +151,22 @@ export default function MemoryPage() {
         className="m-0"
         classNames={{
           base: "h-screen w-screen max-h-screen max-w-screen",
-          body: "py-4 px-4 flex-1 overflow-y-auto",
-          wrapper: "items-center justify-center p-0",
+          body: "py-2 sm:py-4 px-4 flex-1 overflow-y-auto",
+          wrapper: "items-start justify-center p-0 pt-safe",
           backdrop: "bg-gradient-to-br from-purple-900/90 to-blue-900/90"
         }}
       >
         <ModalContent>
-          <ModalHeader className="flex flex-col gap-2 text-center pb-4 pt-8">
-            <div className="text-4xl sm:text-6xl mb-2">🎮</div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-white drop-shadow-lg">
+          <ModalHeader className="flex flex-col gap-2 text-center pb-2 pt-4 sm:pb-4 sm:pt-8">
+            <div className="text-3xl sm:text-6xl mb-1 sm:mb-2">🎮</div>
+            <h2 className="text-xl sm:text-3xl font-bold text-white drop-shadow-lg">
               難易度を選択してください
             </h2>
-            <p className="text-base sm:text-lg text-white/90 drop-shadow">
+            <p className="text-sm sm:text-lg text-white/90 drop-shadow">
               あなたのレベルに合わせて挑戦しよう！
             </p>
           </ModalHeader>
-          <ModalBody className="px-4 sm:px-8 flex-1 flex items-center justify-center">
+          <ModalBody className="px-4 sm:px-8 flex-1 flex items-start justify-center pt-2 sm:pt-0 sm:items-center">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 w-full max-w-4xl">
               {Object.entries(DIFFICULTY_CONFIG).map(([key, config]) => {
                 const IconComponent = config.icon
@@ -202,20 +202,20 @@ export default function MemoryPage() {
                     isPressable
                     onPress={() => handleDifficultySelect(key as DifficultyLevel)}
                   >
-                    <CardBody className="p-4 sm:p-6 lg:p-8 text-center">
+                    <CardBody className="p-3 sm:p-6 lg:p-8 text-center">
                       <div className="flex flex-col items-center space-y-4">
                         <div className={`p-3 sm:p-4 rounded-2xl ${colorClasses.icon} shadow-lg`}>
                           <IconComponent className={`w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 ${colorClasses.iconColor}`} />
                         </div>
                         <div>
-                          <h3 className="text-xl sm:text-2xl font-bold mb-2 text-gray-800 dark:text-gray-200">
+                          <h3 className="text-lg sm:text-2xl font-bold mb-1 sm:mb-2 text-gray-800 dark:text-gray-200">
                             {config.label}
                           </h3>
                           <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 leading-relaxed">
                             {config.description}
                           </p>
                         </div>
-                        <div className="mt-4">
+                        <div className="mt-3 sm:mt-4">
                           <Button
                             className={`font-bold text-white shadow-lg text-sm sm:text-base ${key === 'beginner' ? 'bg-green-500 hover:bg-green-600' :
                               key === 'intermediate' ? 'bg-yellow-500 hover:bg-yellow-600' :
@@ -239,10 +239,10 @@ export default function MemoryPage() {
               })}
             </div>
           </ModalBody>
-          <ModalFooter className="justify-center pt-4 pb-8">
+          <ModalFooter className="justify-center pt-2 pb-4 sm:pt-4 sm:pb-8">
             <div className="text-center">
-              <div className="animate-bounce mb-4">
-                <p className="text-lg font-semibold text-white drop-shadow-lg">
+              <div className="animate-bounce mb-2 sm:mb-4">
+                <p className="text-base sm:text-lg font-semibold text-white drop-shadow-lg">
                   👆 タップして選択してください 👆
                 </p>
               </div>
