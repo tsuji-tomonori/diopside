@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardBody, CardFooter, Image, Chip } from '@heroui/react'
+import { Card, CardBody, CardFooter, Chip } from '@heroui/react'
 import { CalendarIcon, TagIcon } from '@heroicons/react/24/outline'
 import type { Video } from '@/types/api'
 
@@ -35,11 +35,11 @@ export function VideoCard({ video, onClick, className }: VideoCardProps) {
     >
       <CardBody className="p-0">
         {video.thumbnail_url ? (
-          <Image
+          <img
             src={video.thumbnail_url}
             alt={video.title}
             className="w-full h-48 object-cover"
-            radius="none"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-48 bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center">
