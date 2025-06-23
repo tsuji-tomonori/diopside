@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Card, CardBody, Button, Chip } from '@heroui/react'
-import Image from 'next/image'
 import { ArrowPathIcon, ClockIcon, HeartIcon, StarIcon, FireIcon } from '@heroicons/react/24/outline'
 import { useRouter } from 'next/navigation'
 
@@ -87,7 +86,7 @@ export function MemoryGame({ thumbnails, onGameComplete, difficulty, gameStats, 
     const messages = REACTIONS[type]
     const message = messages[Math.floor(Math.random() * messages.length)]
     const reaction: ReactionMessage = {
-      id: `reaction-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: `reaction-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
       message,
       type,
       timestamp: Date.now()
@@ -106,18 +105,15 @@ export function MemoryGame({ thumbnails, onGameComplete, difficulty, gameStats, 
     // Create pairs of cards for memory game
     const gameCards: MemoryCard[] = []
 
-    // Each thumbnail should appear twice (as a pair)
+    console.log('🎮 Initializing game:')
+    console.log('  - difficulty:', difficulty)
+    console.log('  - thumbnails_count:', thumbnails.length)
+    console.log('  - thumbnails_urls:', thumbnails)
+
+    // API returns thumbnails already paired and shuffled, create cards directly
     thumbnails.forEach((url, index) => {
-      // First card of the pair
       gameCards.push({
-        id: `card-${index}-a`,
-        imageUrl: url,
-        isFlipped: false,
-        isMatched: false,
-      })
-      // Second card of the pair
-      gameCards.push({
-        id: `card-${index}-b`,
+        id: `card-${index}`,
         imageUrl: url,
         isFlipped: false,
         isMatched: false,
@@ -130,8 +126,15 @@ export function MemoryGame({ thumbnails, onGameComplete, difficulty, gameStats, 
         ;[gameCards[i], gameCards[j]] = [gameCards[j], gameCards[i]]
     }
 
-    console.log('Game initialized with', gameCards.length, 'cards from', thumbnails.length, 'thumbnails')
-    console.log('Sample card:', gameCards[0])
+    console.log('🎮 Game initialized:')
+    console.log('  - difficulty:', difficulty)
+    console.log('  - thumbnails_count:', thumbnails.length)
+    console.log('  - cards_generated:', gameCards.length)
+    console.log('  - expected_cards:', thumbnails.length)
+    console.log('  - all_cards:')
+    gameCards.forEach((card, index) => {
+      console.log(`    ${index}: ${card.id} -> ${card.imageUrl}`)
+    })
 
     setCards(gameCards)
     setFlippedCards([])
@@ -143,7 +146,7 @@ export function MemoryGame({ thumbnails, onGameComplete, difficulty, gameStats, 
     setIsProcessing(false)
     setReactions([])
     setShowThumbnails(false)
-  }, [thumbnails])
+  }, [thumbnails, difficulty])
 
   // Initialize game when thumbnails change
   useEffect(() => {
@@ -159,7 +162,11 @@ export function MemoryGame({ thumbnails, onGameComplete, difficulty, gameStats, 
     const card = cards.find(c => c.id === cardId)
     if (!card || card.isFlipped || card.isMatched) return
 
-    console.log('Card clicked:', cardId, 'imageUrl:', card.imageUrl)
+    console.log('🃏 Card clicked:')
+    console.log('  - cardId:', cardId)
+    console.log('  - imageUrl:', card.imageUrl)
+    console.log('  - isFlipped:', card.isFlipped)
+    console.log('  - isMatched:', card.isMatched)
 
     // Start timer on first move
     if (startTime === null) {
@@ -170,9 +177,24 @@ export function MemoryGame({ thumbnails, onGameComplete, difficulty, gameStats, 
     addReaction('move')
 
     // Flip the card
-    setCards(prev => prev.map(c =>
-      c.id === cardId ? { ...c, isFlipped: true } : c
-    ))
+    setCards(prev => {
+      const updatedCards = prev.map(c =>
+        c.id === cardId ? { ...c, isFlipped: true } : c
+      )
+
+      const flippedCard = updatedCards.find(c => c.id === cardId)
+      console.log('🃏 Card state updated:')
+      console.log('  - cardId:', cardId)
+      if (flippedCard) {
+        console.log('  - flippedCard.id:', flippedCard.id)
+        console.log('  - flippedCard.imageUrl:', flippedCard.imageUrl)
+        console.log('  - flippedCard.isFlipped:', flippedCard.isFlipped)
+        console.log('  - flippedCard.isMatched:', flippedCard.isMatched)
+      }
+      console.log('  - totalFlippedCards:', updatedCards.filter(c => c.isFlipped).length)
+
+      return updatedCards
+    })
 
     const newFlippedCards = [...flippedCards, cardId]
     setFlippedCards(newFlippedCards)
@@ -187,8 +209,20 @@ export function MemoryGame({ thumbnails, onGameComplete, difficulty, gameStats, 
       const secondCard = cards.find(c => c.id === secondCardId)
 
       setTimeout(() => {
+        console.log('🎯 Pair check:')
+        if (firstCard) {
+          console.log('  - firstCard.id:', firstCard.id)
+          console.log('  - firstCard.imageUrl:', firstCard.imageUrl)
+        }
+        if (secondCard) {
+          console.log('  - secondCard.id:', secondCard.id)
+          console.log('  - secondCard.imageUrl:', secondCard.imageUrl)
+        }
+        console.log('  - isMatch:', firstCard && secondCard && firstCard.imageUrl === secondCard.imageUrl)
+
         if (firstCard && secondCard && firstCard.imageUrl === secondCard.imageUrl) {
           // Match found
+          console.log('✅ Match found!')
           addReaction('match')
           setCards(prev => prev.map(c =>
             c.id === firstCardId || c.id === secondCardId
@@ -197,6 +231,7 @@ export function MemoryGame({ thumbnails, onGameComplete, difficulty, gameStats, 
           ))
         } else {
           // No match - flip cards back
+          console.log('❌ No match - flipping back')
           addReaction('miss')
           setCards(prev => prev.map(c =>
             c.id === firstCardId || c.id === secondCardId
@@ -331,8 +366,8 @@ export function MemoryGame({ thumbnails, onGameComplete, difficulty, gameStats, 
               >
                 <Chip
                   className={`font-semibold shadow-2xl text-sm ${reaction.type === 'match' ? 'bg-green-500 text-white border-2 border-green-300' :
-                      reaction.type === 'miss' ? 'bg-orange-500 text-white border-2 border-orange-300' :
-                        'bg-blue-500 text-white border-2 border-blue-300'
+                    reaction.type === 'miss' ? 'bg-orange-500 text-white border-2 border-orange-300' :
+                      'bg-blue-500 text-white border-2 border-blue-300'
                     }`}
                   startContent={
                     reaction.type === 'match' ? <HeartIcon className="w-4 h-4" /> :
@@ -363,43 +398,56 @@ export function MemoryGame({ thumbnails, onGameComplete, difficulty, gameStats, 
         )}
 
         {/* Game Board */}
-        <div className={`grid ${getGridCols()} gap-2 sm:gap-3 mb-6 mt-4`}>
-          {cards.map((card) => (
-            <Card
-              key={card.id}
-              className={`aspect-square cursor-pointer transition-all duration-500 transform ${card.isFlipped || card.isMatched
+        <div className={`grid ${getGridCols()} gap-2 sm:gap-3 mb-6 mt-4`} data-testid="game-board">
+          {cards.map((card) => {
+            // Card rendering debug
+            if (card.isFlipped || card.isMatched) {
+              console.log('📸 Rendering image for card:')
+              console.log('  - cardId:', card.id)
+              console.log('  - imageUrl:', card.imageUrl)
+              console.log('  - isFlipped:', card.isFlipped)
+              console.log('  - isMatched:', card.isMatched)
+            }
+
+            return (
+              <Card
+                key={card.id}
+                data-testid="game-card"
+                className={`aspect-square cursor-pointer transition-all duration-500 transform ${card.isFlipped || card.isMatched
                   ? 'scale-105 rotate-0'
                   : 'hover:scale-102 hover:-rotate-1'
-                } ${card.isMatched ? 'ring-2 ring-green-400 shadow-lg' : ''
-                }`}
-              isPressable={!card.isFlipped && !card.isMatched && !isProcessing}
-              onPress={() => handleCardClick(card.id)}
-            >
-              <CardBody className="p-0 overflow-hidden">
-                {card.isFlipped || card.isMatched ? (
-                  <div className="relative w-full h-full">
-                    <Image
-                      src={card.imageUrl}
-                      alt="Memory card"
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 25vw, (max-width: 1024px) 20vw, 16vw"
-                      unoptimized
-                    />
-                  </div>
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent"></div>
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                      <span className="text-white text-xl font-bold drop-shadow-lg">?</span>
+                  } ${card.isMatched ? 'ring-2 ring-green-400 shadow-lg' : ''
+                  }`}
+                isPressable={!card.isFlipped && !card.isMatched && !isProcessing}
+                onPress={() => handleCardClick(card.id)}
+              >
+                <CardBody className="p-0 overflow-hidden h-full">
+                  {card.isFlipped || card.isMatched ? (
+                    <div className="relative w-full h-full">
+                      <img
+                        src={card.imageUrl}
+                        alt="Memory card"
+                        className="w-full h-full object-cover"
+                        onLoad={() => {
+                          console.log('🖼️ Image loaded successfully:', card.imageUrl)
+                        }}
+                        onError={(e) => console.error('🚨 Image failed to load:', card.imageUrl, e)}
+                      />
                     </div>
-                    <div className="absolute bottom-2 right-2 w-4 h-4 bg-white/10 rounded-full"></div>
-                    <div className="absolute top-2 left-2 w-2 h-2 bg-white/20 rounded-full"></div>
-                  </div>
-                )}
-              </CardBody>
-            </Card>
-          ))}
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 flex items-center justify-center relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent"></div>
+                      <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                        <span className="text-white text-xl font-bold drop-shadow-lg">?</span>
+                      </div>
+                      <div className="absolute bottom-2 right-2 w-4 h-4 bg-white/10 rounded-full"></div>
+                      <div className="absolute top-2 left-2 w-2 h-2 bg-white/20 rounded-full"></div>
+                    </div>
+                  )}
+                </CardBody>
+              </Card>
+            )
+          })}
         </div>
 
         {/* Thumbnail Gallery */}
@@ -427,13 +475,10 @@ export function MemoryGame({ thumbnails, onGameComplete, difficulty, gameStats, 
                   >
                     <CardBody className="p-0 overflow-hidden relative group">
                       <div className="relative w-full aspect-video">
-                        <Image
+                        <img
                           src={thumbnail}
                           alt={`動画サムネイル ${index + 1}`}
-                          fill
-                          className="object-cover transition-transform group-hover:scale-110"
-                          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 16vw"
-                          unoptimized
+                          className="w-full h-full object-cover transition-transform group-hover:scale-110"
                         />
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                           <div className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/90 rounded-full p-2">

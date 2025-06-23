@@ -27,7 +27,21 @@ export default function MemoryPage() {
   const pairs = difficulty ? DIFFICULTY_CONFIG[difficulty].pairs : 6
   const { data, error, isLoading, mutate } = useMemoryThumbnails(pairs)
 
+  // Debug API data
+  if (data) {
+    console.log('📊 API data received:')
+    console.log('  - difficulty:', difficulty)
+    console.log('  - pairs:', pairs)
+    console.log('  - thumbnails_count:', data.thumbnails.length)
+    console.log('  - thumbnails:', data.thumbnails)
+  }
+
   const handleDifficultySelect = (selectedDifficulty: DifficultyLevel) => {
+    console.log('🎯 Difficulty selected:')
+    console.log('  - selectedDifficulty:', selectedDifficulty)
+    console.log('  - pairs:', DIFFICULTY_CONFIG[selectedDifficulty].pairs)
+    console.log('  - expectedCards:', DIFFICULTY_CONFIG[selectedDifficulty].pairs * 2)
+
     setDifficulty(selectedDifficulty)
     setShowDifficultyModal(false)
     setGameStats(null)
@@ -204,8 +218,8 @@ export default function MemoryPage() {
                         <div className="mt-4">
                           <Button
                             className={`font-bold text-white shadow-lg text-sm sm:text-base ${key === 'beginner' ? 'bg-green-500 hover:bg-green-600' :
-                                key === 'intermediate' ? 'bg-yellow-500 hover:bg-yellow-600' :
-                                  'bg-red-500 hover:bg-red-600'
+                              key === 'intermediate' ? 'bg-yellow-500 hover:bg-yellow-600' :
+                                'bg-red-500 hover:bg-red-600'
                               }`}
                             size="lg"
                             onPress={() => handleDifficultySelect(key as DifficultyLevel)}
