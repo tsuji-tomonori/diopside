@@ -22,9 +22,6 @@ jest.mock('@heroui/react', () => ({
       {children}
     </div>
   ),
-  Image: ({ src, alt, ...props }: any) => (
-    <img src={src} alt={alt} data-testid="video-thumbnail" {...props} />
-  ),
   Chip: ({ children, ...props }: any) => (
     <span data-testid="chip" {...props}>
       {children}
@@ -54,8 +51,9 @@ describe('VideoCard', () => {
     expect(screen.getByText('Test Video Title')).toBeInTheDocument()
     expect(screen.getByText('2024年')).toBeInTheDocument()
     expect(screen.getByText('2024/1/15')).toBeInTheDocument()
-    expect(screen.getByTestId('video-thumbnail')).toHaveAttribute('src', mockVideo.thumbnail_url)
-    expect(screen.getByTestId('video-thumbnail')).toHaveAttribute('alt', mockVideo.title)
+    const imgElement = screen.getByRole('img')
+    expect(imgElement).toHaveAttribute('src', mockVideo.thumbnail_url)
+    expect(imgElement).toHaveAttribute('alt', mockVideo.title)
   })
 
   it('renders tags correctly', () => {
@@ -71,7 +69,7 @@ describe('VideoCard', () => {
     const videoWithoutThumbnail = { ...mockVideo, thumbnail_url: undefined }
     render(<VideoCard video={videoWithoutThumbnail} />)
 
-    expect(screen.queryByTestId('video-thumbnail')).not.toBeInTheDocument()
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
     expect(screen.getByText('Te')).toBeInTheDocument() // First 2 characters of title
   })
 
