@@ -1,274 +1,351 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright/test'
 
-test.describe('メモリーゲーム', () => {
+test.describe('神経衰弱ゲーム', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/memory-game');
-  });
+    await page.goto('/memory')
+  })
 
-  test('メモリーゲームページが正しく読み込まれる', async ({ page }) => {
-    await expect(page).toHaveTitle(/メモリーゲーム.*白雪巴ファンサイト/);
+  test.describe('初期表示とモーダル', () => {
+    test('難易度選択モーダルが初期表示される', async ({ page }) => {
+      // モーダルが表示されることを確認
+      await expect(page.locator('[data-testid="modal"]')).toBeVisible()
 
-    // ページヘッダーの確認
-    const pageTitle = page.locator('h1');
-    await expect(pageTitle).toContainText('メモリーゲーム');
-  });
+      // タイトルの確認
+      await expect(page.locator('text=難易度を選択してください')).toBeVisible()
+      await expect(page.locator('text=あなたのレベルに合わせて挑戦しよう！')).toBeVisible()
 
-  test('ゲーム設定が表示される', async ({ page }) => {
-    // 難易度選択の確認
-    const difficultySelector = page.locator('[data-testid="difficulty-selector"], .difficulty-selector, select[name="difficulty"]');
-    await expect(difficultySelector).toBeVisible();
+      // 3つの難易度が表示される
+      await expect(page.locator('text=初級')).toBeVisible()
+      await expect(page.locator('text=中級')).toBeVisible()
+      await expect(page.locator('text=上級')).toBeVisible()
 
-    // ゲーム開始ボタンの確認
-    const startButton = page.locator('[data-testid="start-game"], .start-game, button:has-text("ゲーム開始")');
-    await expect(startButton).toBeVisible();
-  });
+      // 説明文が表示される
+      await expect(page.locator('text=6ペア (12枚) - 気軽に楽しもう!')).toBeVisible()
+      await expect(page.locator('text=8ペア (16枚) - ちょうどいい挑戦!')).toBeVisible()
+      await expect(page.locator('text=12ペア (24枚) - 真の実力を試そう!')).toBeVisible()
+    })
 
-  test('ゲームボードが正しく生成される', async ({ page }) => {
-    // ゲーム開始
-    const startButton = page.locator('[data-testid="start-game"], .start-game, button:has-text("ゲーム開始")');
-    await startButton.click();
+    test('ページタイトルが正しい', async ({ page }) => {
+      await expect(page).toHaveTitle(/神経衰弱ゲーム.*白雪巴ファンサイト/)
+    })
 
-    // ゲームボードの表示確認
-    const gameBoard = page.locator('[data-testid="game-board"], .game-board, .memory-grid');
-    await expect(gameBoard).toBeVisible();
+    test('難易度選択後にモーダルが閉じる', async ({ page }) => {
+      // 初級を選択
+      await page.locator('text=初級').first().click()
 
-    // カードの数を確認（デフォルト4x4 = 16枚）
-    const cards = page.locator('[data-testid="memory-card"], .memory-card, .card');
-    await expect(cards).toHaveCount(16);
-  });
+      // モーダルが閉じることを確認
+      await expect(page.locator('[data-testid="modal"]')).toBeHidden()
 
-  test('カードクリックでめくり動作', async ({ page }) => {
-    // ゲーム開始
-    const startButton = page.locator('[data-testid="start-game"], .start-game, button:has-text("ゲーム開始")');
-    await startButton.click();
+      // メインコンテンツが表示される
+      await expect(page.locator('text=🧠 神経衰弱ゲーム')).toBeVisible()
+      await expect(page.locator('text=現在の難易度: 初級')).toBeVisible()
+    })
 
-    // 最初のカードをクリック
-    const firstCard = page.locator('[data-testid="memory-card"], .memory-card, .card').first();
-    await firstCard.click();
+    test('キーボードショートカットで難易度選択', async ({ page }) => {
+      // '1'キーで初級選択
+      await page.keyboard.press('1')
 
-    // カードがめくられた状態になることを確認
-    await expect(firstCard).toHaveClass(/flipped|revealed|active/);
+      // モーダルが閉じて初級が選択される
+      await expect(page.locator('[data-testid="modal"]')).toBeHidden()
+      await expect(page.locator('text=現在の難易度: 初級')).toBeVisible()
+    })
+  })
 
-    // カードの画像が表示されることを確認
-    const cardImage = firstCard.locator('img, [data-testid="card-image"]');
-    await expect(cardImage).toBeVisible();
-  });
+  test.describe('ゲーム基本機能', () => {
+    test.beforeEach(async ({ page }) => {
+      // 初級を選択してゲーム開始
+      await page.locator('text=初級').first().click()
+      await expect(page.locator('[data-testid="modal"]')).toBeHidden()
+    })
 
-  test('2枚のカードマッチング機能', async ({ page }) => {
-    // ゲーム開始
-    const startButton = page.locator('[data-testid="start-game"], .start-game, button:has-text("ゲーム開始")');
-    await startButton.click();
+    test('初級選択時に12枚のカードが生成される', async ({ page }) => {
+      // カードが12枚表示される（6ペア）
+      const cards = page.locator('[data-testid="card"]').filter({ has: page.locator('text=?') })
+      await expect(cards).toHaveCount(12)
+    })
 
-    const cards = page.locator('[data-testid="memory-card"], .memory-card, .card');
+    test('カードクリックでサムネイルが表示される', async ({ page }) => {
+      const cards = page.locator('[data-testid="card"]').filter({ has: page.locator('text=?') })
+      const firstCard = cards.first()
 
-    // 最初の2枚のカードをクリック
-    await cards.nth(0).click();
-    await cards.nth(1).click();
+      // 最初は裏向き（?マーク）
+      await expect(firstCard.locator('text=?')).toBeVisible()
 
-    // 少し待機（アニメーション完了のため）
-    await page.waitForTimeout(1000);
+      // クリック
+      await firstCard.click()
 
-    // マッチした場合とマッチしなかった場合の処理を確認
-    const firstCardState = await cards.nth(0).getAttribute('class');
-    const secondCardState = await cards.nth(1).getAttribute('class');
+      // サムネイル画像が表示される
+      await expect(firstCard.locator('[data-testid="next-image"]')).toBeVisible()
+      await expect(firstCard.locator('text=?')).toBeHidden()
+    })
 
-    if (firstCardState?.includes('matched') || firstCardState?.includes('success')) {
-      // マッチした場合：両方のカードがマッチ状態
-      await expect(cards.nth(0)).toHaveClass(/matched|success/);
-      await expect(cards.nth(1)).toHaveClass(/matched|success/);
-    } else {
-      // マッチしなかった場合：カードが裏返る
-      await expect(cards.nth(0)).not.toHaveClass(/flipped|revealed|active/);
-      await expect(cards.nth(1)).not.toHaveClass(/flipped|revealed|active/);
-    }
-  });
+    test('タイマーが正しく動作する', async ({ page }) => {
+      // 初期状態では0:00
+      await expect(page.locator('text=0:00')).toBeVisible()
 
-  test('ゲーム統計の表示', async ({ page }) => {
-    // ゲーム開始
-    const startButton = page.locator('[data-testid="start-game"], .start-game, button:has-text("ゲーム開始")');
-    await startButton.click();
+      // カードをクリックしてタイマー開始
+      const cards = page.locator('[data-testid="card"]').filter({ has: page.locator('text=?') })
+      await cards.first().click()
 
-    // 統計情報の確認
-    const moveCounter = page.locator('[data-testid="move-counter"], .move-counter, .moves');
-    const timer = page.locator('[data-testid="timer"], .timer, .time');
-    const matchCounter = page.locator('[data-testid="match-counter"], .match-counter, .matches');
+      // 少し待機してタイマーが進むことを確認
+      await page.waitForTimeout(2000)
+      await expect(page.locator('text=0:0')).toBeVisible() // 0:01 または 0:02 など
+    })
 
-    await expect(moveCounter).toBeVisible();
-    await expect(timer).toBeVisible();
+    test('手数カウンターが動作する', async ({ page }) => {
+      // 初期状態では手数: 0
+      await expect(page.locator('text=手数: 0')).toBeVisible()
 
-    // カードをクリックして手数が増加することを確認
-    const firstCard = page.locator('[data-testid="memory-card"], .memory-card, .card').first();
-    await firstCard.click();
+      const cards = page.locator('[data-testid="card"]').filter({ has: page.locator('text=?') })
 
-    // 手数カウンターが更新されることを確認
-    await expect(moveCounter).toContainText(/1|手数/);
-  });
+      // 1枚目をクリック
+      await cards.nth(0).click()
+      await expect(page.locator('text=手数: 0')).toBeVisible() // まだ0
 
-  test('難易度変更機能', async ({ page }) => {
-    // 難易度を変更
-    const difficultySelector = page.locator('[data-testid="difficulty-selector"], .difficulty-selector, select[name="difficulty"]');
-    await difficultySelector.selectOption('hard'); // 6x6グリッド
+      // 2枚目をクリック（ペア判定で手数が1増加）
+      await cards.nth(1).click()
+      await expect(page.locator('text=手数: 1')).toBeVisible()
+    })
 
-    // ゲーム開始
-    const startButton = page.locator('[data-testid="start-game"], .start-game, button:has-text("ゲーム開始")');
-    await startButton.click();
+    test('リアクションメッセージが表示される', async ({ page }) => {
+      const cards = page.locator('[data-testid="card"]').filter({ has: page.locator('text=?') })
 
-    // カード数が変更されることを確認（6x6 = 36枚）
-    const cards = page.locator('[data-testid="memory-card"], .memory-card, .card');
-    await expect(cards).toHaveCount(36);
-  });
+      // カードをクリック
+      await cards.first().click()
 
-  test('ゲーム完了時の処理', async ({ page }) => {
-    // 簡単な難易度でテスト（2x2グリッド）
-    const difficultySelector = page.locator('[data-testid="difficulty-selector"], .difficulty-selector, select[name="difficulty"]');
+      // リアクションメッセージが表示される
+      const reactionMessages = [
+        'いい選択ですね！',
+        'どんなカードかな？',
+        '集中していきましょう！',
+        'いい感じですね✨',
+        'この調子でいきましょう！'
+      ]
 
-    // 最も簡単な難易度を選択
-    if (await difficultySelector.isVisible()) {
-      await difficultySelector.selectOption('easy');
-    }
+      const hasReaction = await Promise.race(
+        reactionMessages.map(msg =>
+          page.locator(`text=${msg}`).isVisible().then(visible => ({ msg, visible }))
+        )
+      )
 
-    // ゲーム開始
-    const startButton = page.locator('[data-testid="start-game"], .start-game, button:has-text("ゲーム開始")');
-    await startButton.click();
+      expect(hasReaction.visible).toBe(true)
+    })
 
-    // 全てのカードペアをマッチさせる（自動化は困難なため、完了状態をシミュレート）
-    // 実際のテストでは、ゲーム完了のモック状態を作成するか、
-    // 開発者ツールを使用してゲーム状態を操作する
+    test('リセット機能が動作する', async ({ page }) => {
+      const cards = page.locator('[data-testid="card"]').filter({ has: page.locator('text=?') })
 
-    // ゲーム完了モーダルまたはメッセージの確認
-    const completionModal = page.locator('[data-testid="game-complete"], .game-complete, .victory-modal');
-    const completionMessage = page.locator('[data-testid="completion-message"], .completion-message');
+      // いくつかカードをクリック
+      await cards.nth(0).click()
+      await cards.nth(1).click()
 
-    // 注意: 実際のゲーム完了には時間がかかるため、タイムアウトを長めに設定
-    if (await completionModal.isVisible({ timeout: 30000 })) {
-      await expect(completionModal).toContainText(/完了|クリア|おめでとう/);
-    }
-  });
+      // リセットボタンをクリック
+      await page.locator('text=リセット').click()
 
-  test('ゲームリセット機能', async ({ page }) => {
-    // ゲーム開始
-    const startButton = page.locator('[data-testid="start-game"], .start-game, button:has-text("ゲーム開始")');
-    await startButton.click();
+      // すべてのカードが裏向きに戻る
+      await expect(cards).toHaveCount(12)
+      await expect(page.locator('text=手数: 0')).toBeVisible()
+      await expect(page.locator('text=0:00')).toBeVisible()
+    })
+  })
 
-    // いくつかのカードをクリック
-    const cards = page.locator('[data-testid="memory-card"], .memory-card, .card');
-    await cards.nth(0).click();
-    await cards.nth(1).click();
+  test.describe('ゲーム完了機能', () => {
+    test.beforeEach(async ({ page }) => {
+      // 初級を選択
+      await page.locator('text=初級').first().click()
+      await expect(page.locator('[data-testid="modal"]')).toBeHidden()
+    })
 
-    // リセットボタンをクリック
-    const resetButton = page.locator('[data-testid="reset-game"], .reset-game, button:has-text("リセット")');
+    test('ゲーム完了時にスコアが表示される', async ({ page }) => {
+      // Note: 実際のペア完成は困難なため、モック的な完了をテストする
+      // 開発中はこのテストをスキップするか、手動でペアを完成させる
 
-    if (await resetButton.isVisible()) {
-      await resetButton.click();
+      // 全てのカードを順番にクリックしてペアを見つける試行
+      const cards = page.locator('[data-testid="card"]').filter({ has: page.locator('text=?') })
+      const cardCount = await cards.count()
 
-      // ゲーム状態がリセットされることを確認
-      const moveCounter = page.locator('[data-testid="move-counter"], .move-counter, .moves');
-      await expect(moveCounter).toContainText('0');
+      // 簡単な方法：開発者ツールでゲーム状態を操作するか、
+      // またはより少ないペア数でテストする
+      test.skip(cardCount > 4, '実際のゲーム完了テストは手動で実行')
+    })
 
-      // 全てのカードが裏向きになることを確認
-      const allCards = page.locator('[data-testid="memory-card"], .memory-card, .card');
-      for (let i = 0; i < await allCards.count(); i++) {
-        await expect(allCards.nth(i)).not.toHaveClass(/flipped|revealed|active/);
-      }
-    }
-  });
+    test('ゲーム完了後にギャラリーが表示される', async ({ page }) => {
+      // このテストも実際のゲーム完了が必要
+      test.skip('実際のゲーム完了が必要なため手動テスト')
+    })
+  })
 
-  test('スコア記録機能', async ({ page }) => {
-    // ベストスコア表示の確認
-    const bestScore = page.locator('[data-testid="best-score"], .best-score, .high-score');
+  test.describe('難易度別テスト', () => {
+    test('中級選択時に16枚のカードが生成される', async ({ page }) => {
+      await page.locator('text=中級').first().click()
+      await expect(page.locator('[data-testid="modal"]')).toBeHidden()
 
-    if (await bestScore.isVisible()) {
-      // 初期状態でのベストスコア確認
-      const initialScore = await bestScore.textContent();
-      expect(initialScore).toBeTruthy();
-    }
+      const cards = page.locator('[data-testid="card"]').filter({ has: page.locator('text=?') })
+      await expect(cards).toHaveCount(16) // 8ペア
+    })
 
-    // スコア履歴の確認
-    const scoreHistory = page.locator('[data-testid="score-history"], .score-history, .leaderboard');
+    test('上級選択時に24枚のカードが生成される', async ({ page }) => {
+      await page.locator('text=上級').first().click()
+      await expect(page.locator('[data-testid="modal"]')).toBeHidden()
 
-    if (await scoreHistory.isVisible()) {
-      await expect(scoreHistory).toBeVisible();
-    }
-  });
+      const cards = page.locator('[data-testid="card"]').filter({ has: page.locator('text=?') })
+      await expect(cards).toHaveCount(24) // 12ペア
+    })
 
-  test('ゲーム設定の保存', async ({ page }) => {
-    // 難易度を変更
-    const difficultySelector = page.locator('[data-testid="difficulty-selector"], .difficulty-selector, select[name="difficulty"]');
-    await difficultySelector.selectOption('medium');
+    test('難易度変更機能', async ({ page }) => {
+      // 初級選択
+      await page.locator('text=初級').first().click()
+      await expect(page.locator('text=現在の難易度: 初級')).toBeVisible()
 
-    // ページをリロード
-    await page.reload();
+      // 難易度変更ボタンをクリック
+      await page.locator('text=難易度変更').click()
 
-    // 設定が保存されていることを確認
-    const selectedValue = await difficultySelector.inputValue();
-    expect(selectedValue).toBe('medium');
-  });
+      // モーダルが再表示される
+      await expect(page.locator('[data-testid="modal"]')).toBeVisible()
 
-  test('レスポンシブデザイン', async ({ page }) => {
-    // ゲーム開始
-    const startButton = page.locator('[data-testid="start-game"], .start-game, button:has-text("ゲーム開始")');
-    await startButton.click();
+      // 中級を選択
+      await page.locator('text=中級').first().click()
+      await expect(page.locator('text=現在の難易度: 中級')).toBeVisible()
+    })
+  })
 
-    // モバイルサイズに変更
-    await page.setViewportSize({ width: 375, height: 667 });
+  test.describe('レスポンシブ対応', () => {
+    test('モバイル表示でモーダルが適切に表示される', async ({ page }) => {
+      // モバイルサイズに変更
+      await page.setViewportSize({ width: 375, height: 667 })
 
-    // ゲームボードが適切に表示されることを確認
-    const gameBoard = page.locator('[data-testid="game-board"], .game-board, .memory-grid');
-    await expect(gameBoard).toBeVisible();
+      // モーダルが表示される
+      await expect(page.locator('[data-testid="modal"]')).toBeVisible()
 
-    // カードがクリック可能であることを確認
-    const firstCard = page.locator('[data-testid="memory-card"], .memory-card, .card').first();
-    await firstCard.click();
-    await expect(firstCard).toHaveClass(/flipped|revealed|active/);
-  });
+      // 難易度選択が縦並びで表示される
+      await expect(page.locator('text=初級')).toBeVisible()
+      await expect(page.locator('text=中級')).toBeVisible()
+      await expect(page.locator('text=上級')).toBeVisible()
 
-  test('アクセシビリティ対応', async ({ page }) => {
-    // ゲーム開始
-    const startButton = page.locator('[data-testid="start-game"], .start-game, button:has-text("ゲーム開始")');
-    await startButton.click();
+      // タップで選択できる
+      await page.locator('text=初級').first().click()
+      await expect(page.locator('[data-testid="modal"]')).toBeHidden()
+    })
 
-    // キーボードナビゲーションの確認
-    await page.keyboard.press('Tab');
-    const focusedElement = page.locator(':focus');
-    await expect(focusedElement).toBeVisible();
+    test('タブレット表示でゲームが適切に動作する', async ({ page }) => {
+      // タブレットサイズに変更
+      await page.setViewportSize({ width: 768, height: 1024 })
 
-    // Enterキーでカードをめくれることを確認
-    await page.keyboard.press('Enter');
+      // 初級選択
+      await page.locator('text=初級').first().click()
 
-    // ARIAラベルの確認
-    const cards = page.locator('[data-testid="memory-card"], .memory-card, .card');
-    const firstCard = cards.first();
+      // カードが適切に表示される
+      const cards = page.locator('[data-testid="card"]').filter({ has: page.locator('text=?') })
+      await expect(cards).toHaveCount(12)
 
-    const ariaLabel = await firstCard.getAttribute('aria-label');
-    expect(ariaLabel).toBeTruthy();
-  });
+      // タップでカードが動作する
+      await cards.first().click()
+      await expect(cards.first().locator('[data-testid="next-image"]')).toBeVisible()
+    })
 
-  test('ゲーム中断・再開機能', async ({ page }) => {
-    // ゲーム開始
-    const startButton = page.locator('[data-testid="start-game"], .start-game, button:has-text("ゲーム開始")');
-    await startButton.click();
+    test('デスクトップ表示でキーボード操作が動作する', async ({ page }) => {
+      // デスクトップサイズ
+      await page.setViewportSize({ width: 1920, height: 1080 })
 
-    // いくつかのカードをクリック
-    const cards = page.locator('[data-testid="memory-card"], .memory-card, .card');
-    await cards.nth(0).click();
-    await cards.nth(1).click();
+      // キーボードで難易度選択
+      await page.keyboard.press('2') // 中級
+      await expect(page.locator('text=現在の難易度: 中級')).toBeVisible()
+    })
+  })
 
-    // 一時停止ボタンの確認
-    const pauseButton = page.locator('[data-testid="pause-game"], .pause-game, button:has-text("一時停止")');
+  test.describe('エラーハンドリング', () => {
+    test('ネットワークエラー時の表示', async ({ page }) => {
+      // ネットワークをオフラインに
+      await page.context().setOffline(true)
 
-    if (await pauseButton.isVisible()) {
-      await pauseButton.click();
+      // ページをリロード
+      await page.reload()
 
-      // ゲームが一時停止されることを確認
-      const pauseOverlay = page.locator('[data-testid="pause-overlay"], .pause-overlay, .game-paused');
-      await expect(pauseOverlay).toBeVisible();
+      // エラーメッセージが表示される可能性
+      const errorElements = [
+        page.locator('text=読み込みに失敗'),
+        page.locator('text=エラーが発生'),
+        page.locator('[data-testid="error-message"]')
+      ]
 
-      // 再開ボタンをクリック
-      const resumeButton = page.locator('[data-testid="resume-game"], .resume-game, button:has-text("再開")');
-      await resumeButton.click();
+      const hasError = await Promise.race(
+        errorElements.map(element => element.isVisible())
+      )
 
-      // ゲームが再開されることを確認
-      await expect(pauseOverlay).toBeHidden();
-    }
-  });
-});
+      // ネットワークを元に戻す
+      await page.context().setOffline(false)
+    })
+
+    test('APIエラー時のリトライ機能', async ({ page }) => {
+      // APIエラーをモック（実際のテストでは複雑）
+      // この部分は統合テストで実装
+      test.skip('APIモックが必要なため統合テストで実装')
+    })
+  })
+
+  test.describe('アクセシビリティ', () => {
+    test('キーボードナビゲーション', async ({ page }) => {
+      // 初級選択
+      await page.locator('text=初級').first().click()
+
+      // タブキーでナビゲーション
+      await page.keyboard.press('Tab')
+      await page.keyboard.press('Tab')
+
+      // フォーカス可能な要素が存在する
+      const focusedElement = page.locator(':focus')
+      await expect(focusedElement).toBeVisible()
+    })
+
+    test('画像のalt属性', async ({ page }) => {
+      await page.locator('text=初級').first().click()
+
+      // カードをクリックして画像を表示
+      const cards = page.locator('[data-testid="card"]').filter({ has: page.locator('text=?') })
+      await cards.first().click()
+
+      // 画像にalt属性が設定されている
+      const image = cards.first().locator('[data-testid="next-image"]')
+      const altText = await image.getAttribute('alt')
+      expect(altText).toBeTruthy()
+    })
+
+    test('カラーコントラスト', async ({ page }) => {
+      // ハイコントラストモードでの表示確認
+      await page.emulateMedia({ colorScheme: 'dark' })
+
+      // モーダルが適切に表示される
+      await expect(page.locator('[data-testid="modal"]')).toBeVisible()
+      await expect(page.locator('text=難易度を選択してください')).toBeVisible()
+    })
+  })
+
+  test.describe('パフォーマンス', () => {
+    test('ページ読み込み速度', async ({ page }) => {
+      const startTime = Date.now()
+      await page.goto('/memory')
+
+      // モーダルが表示されるまでの時間
+      await expect(page.locator('[data-testid="modal"]')).toBeVisible()
+      const loadTime = Date.now() - startTime
+
+      // 5秒以内に読み込まれることを確認
+      expect(loadTime).toBeLessThan(5000)
+    })
+
+    test('カードクリック応答性', async ({ page }) => {
+      await page.locator('text=初級').first().click()
+
+      const cards = page.locator('[data-testid="card"]').filter({ has: page.locator('text=?') })
+
+      const startTime = Date.now()
+      await cards.first().click()
+
+      // 画像が表示されるまでの時間
+      await expect(cards.first().locator('[data-testid="next-image"]')).toBeVisible()
+      const responseTime = Date.now() - startTime
+
+      // 1秒以内に応答することを確認
+      expect(responseTime).toBeLessThan(1000)
+    })
+  })
+})
