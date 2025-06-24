@@ -63,7 +63,7 @@ export function useVideosByTag(tagPath: string) {
 /**
  * Hook to fetch random videos
  */
-export function useRandomVideos(count: number = 1) {
+export function useRandomVideos(count: number = 1, options?: { refreshInterval?: number }) {
   const { config, isLoading: configLoading } = useConfig()
 
   return useSWR<RandomVideosResponse>(
@@ -71,7 +71,7 @@ export function useRandomVideos(count: number = 1) {
     () => config ? ApiClient.getRandomVideos(config.NEXT_PUBLIC_API_URL, count) : Promise.reject('Config not loaded'),
     {
       ...swrConfig,
-      refreshInterval: 30000, // Refresh every 30 seconds for random content
+      refreshInterval: options?.refreshInterval ?? 30000, // Default 30 seconds, but can be overridden
     }
   )
 }
