@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## RFC Key Words
+The terms "MUST", "SHOULD", "MAY", "MUST NOT", and "SHOULD NOT" are used as defined in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119).
+
 ## Project Overview
 
 **Diopside** is a serverless web application for archiving and browsing VTuber (Shirayuki Tomoe) video content. The architecture consists of:
@@ -338,3 +341,56 @@ package/scripts/moon.yml     # Utility scripts
 ```
 
 All documentation has been updated to reflect Moon usage. When adding new tasks or commands, use Moon syntax and update this guidance accordingly.
+
+## Package Structure and Naming
+
+All source code is located under the `package/` directory. Each subdirectory represents a project:
+
+- `api/` – FastAPI backend
+- `web/` – Next.js frontend
+- `infra/` – AWS CDK infrastructure
+- `scripts/` – Utility scripts
+
+Package names use lower-case with hyphens. Python files use `snake_case` and TypeScript files use `kebab-case`. See [docs/development/coding-standards.md](docs/development/coding-standards.md) for detailed naming rules.
+
+## Execution Commands
+
+- `moon :check` – run lint, type checking, and tests for all packages
+- `moon root:deploy` – deploy infrastructure and application from the root project
+
+## Application Implementation Rules
+
+- Backend code **MUST** follow asynchronous FastAPI patterns.
+- Pydantic models **SHOULD** define request and response schemas.
+- Tests **MUST** be provided for new API endpoints.
+- Code style **MUST** comply with Ruff and mypy settings.
+
+## Frontend Implementation Rules
+
+- React components **SHOULD** be written in TypeScript.
+- Components **MUST** reside under `web/src/components` and use PascalCase file names.
+- Data fetching **SHOULD** use the provided `useApi` hook and SWR.
+- UI components **MUST NOT** include business logic.
+
+## Infrastructure Implementation Rules
+
+- CDK stacks **MUST** be defined under `infra/src/stack`.
+- Constructs **SHOULD** be reusable across stacks.
+- IAM policies **MUST** grant least privilege only.
+- Environment configuration **MUST NOT** be hard coded.
+
+## Pull Request Rules
+
+Pull requests **MUST** follow the checklist in [docs/development/review-checklist.md](docs/development/review-checklist.md) and use the template in `.github/pull_request_template.md`.
+
+## Implementation Flow
+
+1. Update the local `main` branch and create a feature branch named `claude/YYYYMMDD/short-description`.
+2. Determine whether existing documents require updates or new documents are needed. Obtain approval before creating new documents.
+3. Commit the documentation changes.
+4. Write tests that describe the requirement and commit them.
+5. Run `moon :check` and verify that the new tests fail; save the result output to a file.
+6. Implement the requirement.
+7. Run `moon :check` until all tests pass and fix issues as needed.
+8. Commit the implementation.
+9. Open a pull request and report the results.
