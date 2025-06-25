@@ -94,6 +94,16 @@ SK: "VIDEO#dQw4w9WgXcQ"
 - updated_at: String (更新日時)
 ```
 
+#### ChatAnalysis テーブル
+
+```
+パーティションキー: video_id (String)
+
+属性:
+- word_vector: Map<String, Number> (単語頻度ベクトル)
+- related_videos: List<String> (類似動画ID)
+```
+
 #### Global Secondary Index (GSI)
 
 ```
@@ -120,6 +130,7 @@ GET    /                          # ヘルスチェック
 GET    /health                    # サービス状態確認
 GET    /api/videos                # 動画一覧取得
 GET    /api/videos/{video_id}     # 特定動画取得
+GET    /api/videos/{video_id}/chat # チャット解析データ取得
 GET    /api/videos/by-tag         # タグ別動画取得
 GET    /api/videos/random         # ランダム動画取得
 GET    /api/videos/memory         # メモリーゲーム用動画取得

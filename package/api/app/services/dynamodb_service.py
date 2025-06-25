@@ -35,15 +35,18 @@ class DecimalEncoder(json.JSONEncoder):
 class DynamoDBService:
     """Service class for DynamoDB operations."""
 
-    def __init__(self, table_name: str) -> None:
+    def __init__(self, table_name: str, chat_table_name: str) -> None:
         """Initialize DynamoDB service.
 
         Args:
-            table_name: Name of the DynamoDB table
+            table_name: Metadata table name
+            chat_table_name: Chat analysis table name
         """
         self.table_name = table_name
+        self.chat_table_name = chat_table_name
         self.dynamodb = boto3.resource("dynamodb")
         self.table = self.dynamodb.Table(table_name)
+        self.chat_table = self.dynamodb.Table(chat_table_name)
 
     def _convert_dynamodb_item_to_video(self, item: dict[str, Any]) -> Video:
         """Convert DynamoDB item to Video model.
@@ -315,3 +318,25 @@ class DynamoDBService:
             nodes.append(node)
 
         return sorted(nodes, key=lambda x: x.name)
+
+    async def get_chat_vector(self, video_id: str) -> dict[str, int] | None:
+        """Retrieve word frequency vector for a video."""
+        try:
+            response = self.chat_table.get_item(Key={"video_id": video_id})
+            item = response.get("Item")
+            if not item:
+                return None
+            return cast("dict[str, int]", item.get("word_vector", {}))
+        except ClientError as e:
+            raise RuntimeError(f"Failed to get chat vector: {e}") from e
+
+    async def get_related_videos(self, video_id: str) -> list[str]:
+        """Retrieve related video IDs for a video."""
+        try:
+            response = self.chat_table.get_item(Key={"video_id": video_id})
+            item = response.get("Item")
+            if not item:
+                return []
+            return cast(list[str], item.get("related_videos", []))
+        except ClientError as e:
+            raise RuntimeError(f"Failed to get related videos: {e}") from e

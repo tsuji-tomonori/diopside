@@ -8,7 +8,10 @@ from services.dynamodb_service import DynamoDBService  # type: ignore
 router = APIRouter(prefix="/api", tags=["videos"])
 
 # Initialize DynamoDB service
-db_service = DynamoDBService(os.getenv("DYNAMODB_TABLE_NAME", "videos"))
+db_service = DynamoDBService(
+    os.getenv("DYNAMODB_TABLE_NAME", "videos"),
+    os.getenv("CHAT_TABLE_NAME", "chat")
+)
 
 
 @router.get("/health")
@@ -157,5 +160,25 @@ async def get_video_by_id(
 
         return video
 
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+class ChatVectorResponse(BaseModel):
+    """Response model for chat word vectors and related videos."""
+
+    word_vector: dict[str, int]
+    related_videos: list[str]
+
+
+@router.get("/videos/{video_id}/chat", response_model=ChatVectorResponse)
+async def get_video_chat_vector(video_id: str) -> ChatVectorResponse:
+    """Get word frequency vector and related videos for a video."""
+    try:
+        vector = await db_service.get_chat_vector(video_id)
+        if vector is None:
+            raise HTTPException(status_code=404, detail="Vector not found")
+        related = await db_service.get_related_videos(video_id)
+        return ChatVectorResponse(word_vector=vector, related_videos=related)
     except RuntimeError as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
