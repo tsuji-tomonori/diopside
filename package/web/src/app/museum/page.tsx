@@ -3,7 +3,7 @@
 import { MainLayout } from '@/components/layout/MainLayout'
 import { Loading } from '@/components/common/Loading'
 import { ErrorMessage } from '@/components/common/ErrorMessage'
-import { ThumbnailMuseum } from '@/components/museum/ThumbnailMuseum'
+import { ConstellationMuseum } from '@/components/museum/ConstellationMuseum'
 import { useRandomVideos } from '@/hooks/useApi'
 import { useConfig } from '@/contexts/ConfigContext'
 
@@ -28,13 +28,8 @@ export default function MuseumPage() {
   }
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
-        <h1 className="text-4xl font-bold text-purple-800 dark:text-purple-200 text-center">
-          🖼️ サムネイル美術館
-        </h1>
-        {data && <ThumbnailMuseum videos={data.items} />}
-      </div>
-    </MainLayout>
+    <>
+      {data && <ConstellationMuseum videos={data.items} />}
+    </>
   )
 }
