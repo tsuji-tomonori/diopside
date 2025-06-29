@@ -4,7 +4,7 @@ from constructs import Construct
 
 from src.construct.resource.function import LambdaConstruct
 from src.construct.resource.rest_api import ApigwConstruct
-from src.construct.resource.table import DynamoDBConstruct
+from src.construct.resource.table import ChatAnalysisTableConstruct, DynamoDBConstruct
 from src.construct.resource.waf import WafConstruct
 from src.model.env import Env
 from src.model.project import Project
@@ -46,15 +46,26 @@ class BackendApiConstruct(Construct):
             environment=environment,
         )
 
+        self.chat_analysis = ChatAnalysisTableConstruct(
+            self,
+            "ChatAnalysis",
+            environment=environment,
+        )
+
         self.server.function.add_environment(
             "DYNAMODB_TABLE_NAME",
             self.archive_metadata.table.table_name,
+        )
+        self.server.function.add_environment(
+            "CHAT_TABLE_NAME",
+            self.chat_analysis.table.table_name,
         )
 
         assert self.server.function.role is not None, (
             "Lambda function role must be defined"
         )
         self.archive_metadata.table.grant_read_data(self.server.function)
+        self.chat_analysis.table.grant_read_data(self.server.function)
 
         self.waf = WafConstruct(
             self,

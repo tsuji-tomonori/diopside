@@ -52,8 +52,9 @@ class TestDynamoDBService:
     @pytest.fixture
     def service(self, mock_table: MagicMock) -> DynamoDBService:
         """Create DynamoDBService instance with mocked table."""
-        service = DynamoDBService("test-table")
+        service = DynamoDBService("test-table", "chat-table")
         service.table = mock_table
+        service.chat_table = mock_table
         return service
 
     def test_convert_dynamodb_item_to_video(self, service: DynamoDBService) -> None:
@@ -543,3 +544,18 @@ class TestDynamoDBService:
         assert chat_node.count == 1
         assert len(chat_node.children) == 1  # type: ignore
         assert chat_node.children[0].name == "料理"  # type: ignore
+
+    @pytest.mark.asyncio
+    async def test_get_chat_vector(self, service: DynamoDBService, mock_table: MagicMock) -> None:
+        """Test get_chat_vector."""
+        mock_table.get_item.return_value = {"Item": {"word_vector": {"a": 1}}}
+        vector = await service.get_chat_vector("v1")
+        assert vector == {"a": 1}
+
+    @pytest.mark.asyncio
+    async def test_get_related_videos(self, service: DynamoDBService, mock_table: MagicMock) -> None:
+        """Test get_related_videos."""
+        mock_table.get_item.return_value = {"Item": {"related_videos": ["x"]}}
+        related = await service.get_related_videos("v1")
+        assert related == ["x"]
+ 

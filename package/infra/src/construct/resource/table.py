@@ -78,3 +78,34 @@ class DynamoDBConstruct(Construct):
             value=self.table.table_arn,
             description=f"DynamoDB table ARN for {self.env} environment",
         )
+
+
+class ChatAnalysisTableConstruct(Construct):
+    """DynamoDB table for chat analysis data."""
+
+    def __init__(
+        self: Self,
+        scope: Construct,
+        construct_id: str,
+        environment: Env,
+        **kwargs: Any,  # noqa: ANN401
+    ) -> None:
+        super().__init__(scope, construct_id, **kwargs)
+
+        self.table = dynamodb.Table(
+            self,
+            "ChatTable",
+            partition_key=dynamodb.Attribute(
+                name="video_id",
+                type=dynamodb.AttributeType.STRING,
+            ),
+            billing_mode=dynamodb.BillingMode.PAY_PER_REQUEST,
+            removal_policy=environment.removal_policy(),
+        )
+
+        cdk.CfnOutput(
+            self,
+            "ChatTableArn",
+            value=self.table.table_arn,
+            description="Chat analysis table ARN",
+        )
