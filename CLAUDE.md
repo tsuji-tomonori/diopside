@@ -2,6 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## RFC Key Words
+The terms "MUST", "SHOULD", "MAY", "MUST NOT", and "SHOULD NOT" are used as defined in [RFC 2119](https://www.rfc-editor.org/rfc/rfc2119).
+
 ## Project Overview
 
 **Diopside** is a serverless web application for archiving and browsing VTuber (Shirayuki Tomoe) video content. The architecture consists of:
@@ -12,82 +15,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-### Moon Task Runner (Primary)
-This project uses Moon as the primary build tool with a monorepo structure:
+### Moon Task Runner
+This repository uses Moon for all workflows. Contributors **SHOULD** rely on these tasks:
 
 ```bash
-# Infrastructure
-moon run :bootstrap        # Bootstrap CDK environment
-moon run :deploy           # Deploy infrastructure only
-moon run :deploy-all       # Deploy everything (infra + frontend with S3 sync)
-moon run :diff             # Show CDK infrastructure diff
-moon run :synth            # Synthesize CDK templates
-moon run :destroy          # Destroy infrastructure
-
-# Development & Testing
-moon run :setup            # Complete project setup (dependencies + pre-commit)
-moon run :setup-precommit  # Install pre-commit and setup git hooks
-moon run :update-precommit # Update pre-commit hooks to latest versions
-moon run :lint             # Run linting for all affected projects
-moon run :test             # Run tests for all affected projects
-moon run api:lint          # Run backend linting
-moon run api:test          # Run backend tests
-moon run api:dev           # Run backend development server
-moon run web:install       # Install frontend dependencies
-moon run web:dev           # Run frontend development server (port 50970)
-moon run web:build         # Build frontend for production
-moon run web:test          # Run frontend tests
-
-# Project-specific commands
-moon run infra:bootstrap   # Bootstrap CDK environment
-moon run infra:synth       # Synthesize CDK templates
-moon run infra:diff        # Show CDK diff
-moon run infra:deploy      # Deploy infrastructure
-moon run web:test-e2e      # Run E2E tests
-moon run web:test-coverage # Run tests with coverage
-
-# Utilities
-moon run :clean            # Clean all build artifacts
-moon run :layer            # Build Lambda layer dependencies
-moon run :import-data      # Import data to DynamoDB
-```
-
-### Development Shortcuts
-```bash
-# Start development servers
-moon run :dev-api          # Start API development server
-moon run :dev-web          # Start web development server
-
-# Run all tests
-moon run :test             # Run tests for all affected projects
-moon run :lint             # Run linting for all affected projects
-```
-
-### Direct Commands (Alternative)
-
-Frontend (package/web/):
-```bash
-npm run dev                # Development server
-npm run build              # Production build
-npm run test               # Jest unit tests
-npm run test:e2e           # Playwright E2E tests
-npm run test:e2e:ui        # Playwright with UI
-npm run lint               # ESLint
-```
-
-Backend (package/api/):
-```bash
-uv run python main.py      # Development server
-uv run pytest tests/      # Run tests
-uv run ruff check .        # Linting
-uv run mypy app/           # Type checking
-```
-
-Infrastructure (package/infra/):
-```bash
-uv run cdk diff            # Show changes
-uv run cdk deploy --all    # Deploy all stacks
-uv run pytest tests/      # Run infrastructure tests
+moon :check        # Run lint, type checking, and tests
+moon root:deploy   # Deploy infrastructure and application
+moon run api:dev   # Start the backend development server
+moon run web:dev   # Start the frontend development server
 ```
 
 ## Architecture Overview
@@ -174,16 +109,16 @@ package/
 
 ## Testing Strategy
 
-- **Unit Tests**: Jest for frontend components, pytest for backend logic
+- **Unit Tests**: Jest for frontend components and pytest for backend logic. Unit tests **MUST NOT** access external resources; use mocks for network, file system, and database interactions.
 - **E2E Tests**: Playwright for user workflows
 - **Integration Tests**: API endpoint testing with real DynamoDB
 - **Infrastructure Tests**: CDK snapshot testing
 
 ## Deployment Notes
 
-- Use `moon run :deploy-all` for complete deployment (infrastructure + frontend sync to S3)
+- Use `moon root:deploy` for complete deployment (infrastructure + frontend sync to S3)
 - Frontend builds to `package/web/out/` and syncs to S3 automatically
-- CloudFront invalidation is triggered automatically in deploy-all
+- CloudFront invalidation is triggered automatically during deployment
 - Environment variables are set via CDK context
 - The stack name is "ShirayukiTomoFansiteStack" in all environments
 
@@ -229,7 +164,7 @@ docs/
 
 ### Required Documents
 
-Based on standard project documentation practices, these documents **must be maintained**:
+Based on standard project documentation practices, these documents **MUST be maintained**:
 
 #### Core Project Documents
 - `README.md` - Project overview, quick start, basic usage
@@ -288,7 +223,7 @@ Based on standard project documentation practices, these documents **must be mai
 ### Document Creation Guidelines
 
 **When creating new documents, add guidance to CLAUDE.md for:**
-- When the document should be updated
+- When the document **SHOULD** be updated
 - What sections need maintenance
 - Dependencies with other documents
 - Quality standards specific to that document type
@@ -338,3 +273,56 @@ package/scripts/moon.yml     # Utility scripts
 ```
 
 All documentation has been updated to reflect Moon usage. When adding new tasks or commands, use Moon syntax and update this guidance accordingly.
+
+## Package Structure and Naming
+
+All source code is located under the `package/` directory. Each subdirectory represents a project:
+
+- `api/` – FastAPI backend
+- `web/` – Next.js frontend
+- `infra/` – AWS CDK infrastructure
+- `scripts/` – Utility scripts
+
+Package names use lower-case with hyphens. Python files use `snake_case` and TypeScript files use `kebab-case`. See [docs/development/coding-standards.md](docs/development/coding-standards.md) for detailed naming rules.
+
+## Execution Commands
+
+- `moon :check` – run lint, type checking, and tests for all packages
+- `moon root:deploy` – deploy infrastructure and application from the root project
+
+## Application Implementation Rules
+
+- Backend code **MUST** follow asynchronous FastAPI patterns.
+- Pydantic models **SHOULD** define request and response schemas.
+- Tests **MUST** be provided for new API endpoints.
+- Code style **MUST** comply with Ruff and mypy settings.
+
+## Frontend Implementation Rules
+
+- React components **SHOULD** be written in TypeScript.
+- Components **MUST** reside under `web/src/components` and use PascalCase file names.
+- Data fetching **SHOULD** use the provided `useApi` hook and SWR.
+- UI components **MUST NOT** include business logic.
+
+## Infrastructure Implementation Rules
+
+- CDK stacks **MUST** be defined under `infra/src/stack`.
+- Constructs **SHOULD** be reusable across stacks.
+- IAM policies **MUST** grant least privilege only.
+- Environment configuration **MUST NOT** be hard coded.
+
+## Pull Request Rules
+
+Pull requests **MUST** follow the checklist in [docs/development/review-checklist.md](docs/development/review-checklist.md) and use the template in `.github/pull_request_template.md`.
+
+## Implementation Flow
+
+1. Update the local `main` branch and create a feature branch named `claude/YYYYMMDD/short-description`.
+2. Determine whether existing documents require updates or new documents are needed. Obtain approval before creating new documents.
+3. Commit the documentation changes.
+4. Write tests that describe the requirement and commit them.
+5. Run `moon :check` and verify that the new tests fail; save the result output to a file.
+6. Implement the requirement.
+7. Run `moon :check` until all tests pass and fix issues as needed.
+8. Commit the implementation.
+9. Open a pull request and report the results.
