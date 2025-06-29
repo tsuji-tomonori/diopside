@@ -74,38 +74,40 @@ async def get_videos_by_year(
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@router.get("/tags", response_model=TagsResponse)
-async def get_tag_tree() -> TagsResponse:
-    """Get hierarchical tag tree structure.
+# Moved to tag_hierarchy.py
+# @router.get("/tags", response_model=TagsResponse)
+# async def get_tag_tree() -> TagsResponse:
+#     """Get hierarchical tag tree structure.
+#
+#     Returns a tree structure of all tags with their counts,
+#     enabling hierarchical navigation through video archives.
+#     """
+#     try:
+#         tag_tree = await db_service.build_tag_tree()
+#         return TagsResponse(tree=tag_tree)
+#
+#     except RuntimeError as e:
+#         raise HTTPException(status_code=500, detail=str(e)) from e
 
-    Returns a tree structure of all tags with their counts,
-    enabling hierarchical navigation through video archives.
-    """
-    try:
-        tag_tree = await db_service.build_tag_tree()
-        return TagsResponse(tree=tag_tree)
 
-    except RuntimeError as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
-
-
-@router.get("/videos/by-tag", response_model=VideosByTagResponse)
-async def get_videos_by_tag(
-    path: str = Query(
-        ..., description="Tag path (e.g., 'ゲーム実況/ホラー/Cry of Fear')"
-    ),
-) -> VideosByTagResponse:
-    """Get videos filtered by hierarchical tag path.
-
-    Supports filtering videos by a specific tag path in the hierarchy.
-    The path should be slash-separated (e.g., 'ゲーム実況/ホラー/Cry of Fear').
-    """
-    try:
-        videos = await db_service.get_videos_by_tag_path(path)
-        return VideosByTagResponse(items=videos)
-
-    except RuntimeError as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
+# Moved to tag_hierarchy.py
+# @router.get("/videos/by-tag", response_model=VideosByTagResponse)
+# async def get_videos_by_tag(
+#     path: str = Query(
+#         ..., description="Tag path (e.g., 'ゲーム実況/ホラー/Cry of Fear')"
+#     ),
+# ) -> VideosByTagResponse:
+#     """Get videos filtered by hierarchical tag path.
+#
+#     Supports filtering videos by a specific tag path in the hierarchy.
+#     The path should be slash-separated (e.g., 'ゲーム実況/ホラー/Cry of Fear').
+#     """
+#     try:
+#         videos = await db_service.get_videos_by_tag_path(path)
+#         return VideosByTagResponse(items=videos)
+#
+#     except RuntimeError as e:
+#         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @router.get("/videos/random", response_model=RandomVideosResponse)

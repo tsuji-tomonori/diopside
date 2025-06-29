@@ -1,3 +1,4 @@
+from typing import Any
 from pydantic import BaseModel, Field
 
 
@@ -29,8 +30,16 @@ class TagNode(BaseModel):
     """Tag hierarchy node for building tag trees."""
 
     name: str = Field(..., description="Tag name")
-    children: list["TagNode"] | None = Field(None, description="Child tag nodes")
-    count: int | None = Field(None, description="Number of children or videos")
+    children: list["TagNode"] = Field(default_factory=list, description="Child tag nodes")
+    count: int = Field(default=0, description="Number of videos under this tag")
+    level: int = Field(default=0, description="Hierarchy level (0=root, 1=category, etc.)")
+    hierarchy_path: str = Field(default="", description="Full hierarchy path (e.g., 'ゲーム実況/ホラー')")
+
+    def __init__(self, **data: Any) -> None:
+        # Ensure children is always a list, never None
+        if data.get('children') is None:
+            data['children'] = []
+        super().__init__(**data)
 
     model_config = {
         "json_schema_extra": {
@@ -39,11 +48,130 @@ class TagNode(BaseModel):
                 "children": [
                     {
                         "name": "ホラー",
-                        "children": [{"name": "Cry of Fear", "count": 5}],
-                        "count": 1,
+                        "children": [{"name": "Cry of Fear", "count": 5, "level": 2, "hierarchy_path": "ゲーム実況/ホラー/Cry of Fear"}],
+                        "count": 15,
+                        "level": 1,
+                        "hierarchy_path": "ゲーム実況/ホラー"
                     }
                 ],
-                "count": 1,
+                "count": 25,
+                "level": 0,
+                "hierarchy_path": "ゲーム実況"
+            }
+        }
+    }
+
+
+class TagMapping(BaseModel):
+    """Represents a tag mapping with confidence and rule information."""
+
+    original: str = Field(..., description="Original tag")
+    hierarchy_path: str = Field(..., description="Hierarchical path for the tag")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Confidence level (0.0-1.0)")
+    rule_applied: str = Field(..., description="Name of the rule that was applied")
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "original": "Cry of Fear",
+                "hierarchy_path": "ゲーム実況/ホラー/Cry of Fear",
+                "confidence": 0.95,
+                "rule_applied": "game_name_rule"
+            }
+        }
+    }
+
+
+class TagNormalizeRequest(BaseModel):
+    """Request model for tag normalization."""
+
+    tags: list[str] = Field(..., description="List of flat tags to normalize")
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "tags": ["ゲーム実況", "ホラー", "Cry of Fear"]
+            }
+        }
+    }
+
+
+class TagNormalizeResponse(BaseModel):
+    """Response model for tag normalization."""
+
+    original_tags: list[str] = Field(..., description="Original input tags")
+    hierarchical_tags: list[str] = Field(..., description="Normalized hierarchical tags")
+    mapping_details: list[TagMapping] = Field(..., description="Detailed mapping information")
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "original_tags": ["ゲーム実況", "ホラー", "Cry of Fear"],
+                "hierarchical_tags": ["ゲーム実況/ホラー/Cry of Fear"],
+                "mapping_details": [
+                    {
+                        "original": "Cry of Fear",
+                        "hierarchy_path": "ゲーム実況/ホラー/Cry of Fear",
+                        "confidence": 0.95,
+                        "rule_applied": "game_name_rule"
+                    }
+                ]
+            }
+        }
+    }
+
+
+class TagTreeResponse(BaseModel):
+    """Response model for tag tree API."""
+
+    tag_tree: list[TagNode] = Field(..., description="Hierarchical tag tree")
+    metadata: dict[str, Any] = Field(..., description="Additional metadata about the tag tree")
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "tag_tree": [
+                    {
+                        "name": "ゲーム実況",
+                        "children": [],
+                        "count": 100,
+                        "level": 0,
+                        "hierarchy_path": "ゲーム実況"
+                    }
+                ],
+                "metadata": {
+                    "total_videos": 500,
+                    "hierarchy_coverage": 0.85,
+                    "last_updated": "2024-01-01T12:00:00Z"
+                }
+            }
+        }
+    }
+
+
+class VideosByTagResponse(BaseModel):
+    """Response model for videos by tag API."""
+
+    videos: list[Video] = Field(..., description="List of videos matching the tag")
+    pagination: dict[str, Any] = Field(..., description="Pagination information")
+    tag_info: dict[str, Any] = Field(..., description="Information about the queried tag")
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "videos": [],
+                "pagination": {
+                    "page": 1,
+                    "limit": 20,
+                    "total": 50,
+                    "has_next": True
+                },
+                "tag_info": {
+                    "hierarchy_path": "ゲーム実況/ホラー",
+                    "level": 1,
+                    "parent_path": "ゲーム実況",
+                    "children_paths": ["ゲーム実況/ホラー/Cry of Fear"]
+                }
             }
         }
     }

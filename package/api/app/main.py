@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 from routers.videos import router as videos_router  # type: ignore
+from routers.tag_hierarchy import router as tag_hierarchy_router  # type: ignore
 
 # Create FastAPI application
 app = FastAPI(
@@ -26,6 +27,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(videos_router)
+app.include_router(tag_hierarchy_router)
 
 
 @app.get("/")
