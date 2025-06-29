@@ -23,7 +23,7 @@ class TagMapping:
 class TagRuleLoader:
     """Loads tag classification rules from external sources."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the rule loader."""
         self.project_root = Path(__file__).parent.parent.parent.parent.parent
 
@@ -84,7 +84,7 @@ class TagRuleLoader:
 
     def load_tag_analysis_table(self) -> Dict[str, Set[str]]:
         """Load classification data from tag_analysis_table.csv."""
-        analysis_data = {
+        analysis_data: Dict[str, Set[str]] = {
             "ゲーム名": set(),
             "人名": set(),
             "グループ名": set(),
@@ -184,7 +184,7 @@ class TagAnalyzer:
 class TagHierarchyService:
     """Main service for tag hierarchy operations."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the service."""
         self.rule_loader = TagRuleLoader()
         self.analyzer = TagAnalyzer(self.rule_loader)

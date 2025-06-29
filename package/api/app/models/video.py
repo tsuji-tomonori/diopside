@@ -1,3 +1,4 @@
+from typing import Any
 from pydantic import BaseModel, Field
 
 
@@ -33,6 +34,12 @@ class TagNode(BaseModel):
     count: int = Field(default=0, description="Number of videos under this tag")
     level: int = Field(default=0, description="Hierarchy level (0=root, 1=category, etc.)")
     hierarchy_path: str = Field(default="", description="Full hierarchy path (e.g., 'ゲーム実況/ホラー')")
+
+    def __init__(self, **data):
+        # Ensure children is always a list, never None
+        if data.get('children') is None:
+            data['children'] = []
+        super().__init__(**data)
 
     model_config = {
         "json_schema_extra": {
@@ -118,7 +125,7 @@ class TagTreeResponse(BaseModel):
     """Response model for tag tree API."""
 
     tag_tree: list[TagNode] = Field(..., description="Hierarchical tag tree")
-    metadata: dict = Field(..., description="Additional metadata about the tag tree")
+    metadata: dict[str, Any] = Field(..., description="Additional metadata about the tag tree")
 
     model_config = {
         "json_schema_extra": {
@@ -146,8 +153,8 @@ class VideosByTagResponse(BaseModel):
     """Response model for videos by tag API."""
 
     videos: list[Video] = Field(..., description="List of videos matching the tag")
-    pagination: dict = Field(..., description="Pagination information")
-    tag_info: dict = Field(..., description="Information about the queried tag")
+    pagination: dict[str, Any] = Field(..., description="Pagination information")
+    tag_info: dict[str, Any] = Field(..., description="Information about the queried tag")
 
     model_config = {
         "json_schema_extra": {

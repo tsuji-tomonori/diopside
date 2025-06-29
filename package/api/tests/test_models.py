@@ -123,8 +123,8 @@ class TestTagNodeModel:
         tag = TagNode(name="ゲーム実況")  # type: ignore
 
         assert tag.name == "ゲーム実況"
-        assert tag.children is None
-        assert tag.count is None
+        assert tag.children == []  # Now defaults to empty list
+        assert tag.count == 0  # Now defaults to 0
 
     def test_tag_node_creation_with_count(self) -> None:
         """Test creating a tag node with count."""
@@ -132,7 +132,7 @@ class TestTagNodeModel:
 
         assert tag.name == "ホラー"
         assert tag.count == 10
-        assert tag.children is None
+        assert tag.children == []  # Now defaults to empty list
 
     def test_tag_node_creation_with_children(self) -> None:
         """Test creating a tag node with nested children."""
@@ -186,8 +186,10 @@ class TestTagNodeModel:
 
         assert parent_dict == {
             "name": "Parent",
-            "children": [{"name": "Child", "children": None, "count": 5}],
+            "children": [{"name": "Child", "children": [], "count": 5, "level": 0, "hierarchy_path": ""}],
             "count": 1,
+            "level": 0,
+            "hierarchy_path": ""
         }
 
     def test_tag_node_empty_children_list(self) -> None:
@@ -196,4 +198,4 @@ class TestTagNodeModel:
 
         assert tag.name == "Empty Parent"
         assert tag.children == []
-        assert tag.count is None
+        assert tag.count == 0  # Now defaults to 0

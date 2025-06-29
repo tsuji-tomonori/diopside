@@ -3,17 +3,17 @@ API routes for tag hierarchy functionality.
 Provides endpoints for tag normalization and hierarchical operations.
 """
 
+import os
 from fastapi import APIRouter, HTTPException
-from models.video import (
+from app.models.video import (
     TagTreeResponse,
     TagNormalizeRequest,
     TagNormalizeResponse,
     VideosByTagResponse,
     TagMapping as TagMappingModel
 )
-from services.tag_hierarchy_service import TagHierarchyService, TagMapping
-from services.dynamodb_service import DynamoDBService
-import os
+from app.services.tag_hierarchy_service import TagHierarchyService, TagMapping
+from app.services.dynamodb_service import DynamoDBService
 
 router = APIRouter(prefix="/api", tags=["tag-hierarchy"])
 

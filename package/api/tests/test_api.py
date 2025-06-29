@@ -116,32 +116,37 @@ class TestVideoEndpoints:
         assert response.status_code == 500
         assert "Database connection failed" in response.json()["detail"]
 
-    @patch("routers.videos.db_service")
-    def test_get_tag_tree_success(self, mock_db: MagicMock, client: TestClient) -> None:
+    @patch("app.routers.tag_hierarchy.hierarchy_service")
+    def test_get_tag_tree_success(self, mock_service: MagicMock, client: TestClient) -> None:
         """Test successful get tag tree."""
-        mock_tags = [
-            {
-                "name": "ゲーム実況",
-                "children": [
-                    {"name": "ホラー", "children": None, "count": 5},
-                    {"name": "アクション", "children": None, "count": 3},
-                ],
-                "count": 2,
-            },
-            {"name": "雑談", "children": None, "count": 10},
-        ]
-        mock_db.build_tag_tree = AsyncMock(return_value=mock_tags)
+        # Mock TagNode structure with proper format
+        mock_tree = TagNode(
+            name="root",
+            children=[
+                TagNode(name="ゲーム実況", count=2, level=0, hierarchy_path="ゲーム実況", children=[
+                    TagNode(name="ホラー", count=5, level=1, hierarchy_path="ゲーム実況/ホラー", children=[]),
+                    TagNode(name="アクション", count=3, level=1, hierarchy_path="ゲーム実況/アクション", children=[]),
+                ]),
+                TagNode(name="雑談", count=10, level=0, hierarchy_path="雑談", children=[]),
+            ],
+            count=12,
+            level=0,
+            hierarchy_path=""
+        )
+        mock_service.build_hierarchy_tree.return_value = mock_tree
 
         response = client.get("/api/tags")
 
         assert response.status_code == 200
         data = response.json()
-        assert len(data["tree"]) == 2
-        assert data["tree"][0]["name"] == "ゲーム実況"
-        assert len(data["tree"][0]["children"]) == 2
-        assert data["tree"][1]["name"] == "雑談"
+        # New API returns tag_tree and metadata
+        assert "tag_tree" in data
+        assert "metadata" in data
+        assert len(data["tag_tree"]) == 1  # Single root node
+        assert data["tag_tree"][0]["name"] == "root"
+        assert len(data["tag_tree"][0]["children"]) == 2
 
-    @patch("routers.videos.db_service")
+    @patch("app.routers.tag_hierarchy.db_service")
     def test_get_videos_by_tag_success(
         self, mock_db: MagicMock, client: TestClient
     ) -> None:
@@ -166,17 +171,23 @@ class TestVideoEndpoints:
         ]
         mock_db.get_videos_by_tag_path = AsyncMock(return_value=mock_videos)
 
-        response = client.get("/api/videos/by-tag?path=ゲーム実況/ホラー")
+        # Use the new path-based endpoint
+        response = client.get("/api/videos/by-tag/ゲーム実況/ホラー")
 
         assert response.status_code == 200
         data = response.json()
-        assert len(data["items"]) == 2
-        assert all("ホラー" in item["tags"] for item in data["items"])
+        # New API returns videos, pagination, and tag_info
+        assert "videos" in data
+        assert "pagination" in data
+        assert "tag_info" in data
+        assert len(data["videos"]) == 2
+        assert all("ホラー" in item["tags"] for item in data["videos"])
 
     def test_get_videos_by_tag_missing_path(self, client: TestClient) -> None:
         """Test get videos by tag without path parameter."""
-        response = client.get("/api/videos/by-tag")
-        assert response.status_code == 422
+        # This should now be a 404 since the path parameter is required
+        response = client.get("/api/videos/by-tag/")
+        assert response.status_code == 404
 
     @patch("routers.videos.db_service")
     def test_get_random_videos_success(

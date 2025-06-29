@@ -302,7 +302,7 @@ class DynamoDBService:
 
         for tag_name, tag_data in tree.items():
             children_dict = tag_data["children"]
-            children = None
+            children = []
 
             if children_dict:
                 children = self._dict_to_tag_nodes(children_dict)
