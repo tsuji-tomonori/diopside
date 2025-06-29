@@ -35,7 +35,7 @@ class TagNode(BaseModel):
     level: int = Field(default=0, description="Hierarchy level (0=root, 1=category, etc.)")
     hierarchy_path: str = Field(default="", description="Full hierarchy path (e.g., 'ゲーム実況/ホラー')")
 
-    def __init__(self, **data):
+    def __init__(self, **data: Any) -> None:
         # Ensure children is always a list, never None
         if data.get('children') is None:
             data['children'] = []

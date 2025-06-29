@@ -278,7 +278,7 @@ class TagHierarchyService:
         # This would integrate with the existing DynamoDB service
         # For now, return a basic structure
 
-        root_node = TagNode(
+        root_node: TagNode = TagNode(
             name="root",
             children=[],
             count=0,
@@ -288,7 +288,7 @@ class TagHierarchyService:
 
         # Add major categories as children
         for category in self.analyzer.major_categories:
-            category_node = TagNode(
+            category_node: TagNode = TagNode(
                 name=category,
                 children=[],
                 count=0,
@@ -299,7 +299,7 @@ class TagHierarchyService:
             # Add subcategories
             subcategories = self.analyzer.subcategories.get(category, [])
             for subcategory in subcategories:
-                subcategory_node = TagNode(
+                subcategory_node: TagNode = TagNode(
                     name=subcategory,
                     children=[],
                     count=0,
