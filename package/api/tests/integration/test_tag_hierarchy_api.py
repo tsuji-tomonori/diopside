@@ -4,7 +4,7 @@ Tests the complete flow from API request to database response.
 """
 
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from app.main import app
 from app.models.video import TagNode, Video
 from app.services.dynamodb_service import DynamoDBService
@@ -15,7 +15,8 @@ import json
 @pytest.fixture
 async def client():
     """Create async test client."""
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
 
 
