@@ -6,14 +6,14 @@ requires-python = ">=3.13"
 dependencies = [
     "aws-cdk-lib==2.201.0",
     "boto3>=1.38.36",
-    "constructs==10.4.2",
+    "constructs==10.4.3",
 ]
 
 [dependency-groups]
 infra = [
     "aws-cdk-lib==2.201.0",
     "boto3>=1.38.36",
-    "constructs==10.4.2",
+    "constructs==10.4.3",
 ]
 dev = [
     "pytest>=8.4.0",
